@@ -410,7 +410,13 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 260);
     };
 
-    window.setTimeout(openPopup, 1400);
+        const hasSeenPopup = sessionStorage.getItem("hiringPopupShown");
+    if (!hasSeenPopup) {
+      window.setTimeout(() => {
+        openPopup();
+        sessionStorage.setItem("hiringPopupShown", "true");
+      }, 1400);
+    }
 
     if (closeBtn) {
       closeBtn.addEventListener("click", closePopup);
