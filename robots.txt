@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# Disallow admin paths (if any)
+Disallow: /admin/
+Disallow: /private/
+Disallow: /.git/
+
+# Crawl-delay for respectful bots
+Crawl-delay: 1
+
+# Sitemap
+Sitemap: https://www.sharpkode.com/sitemap.xml
