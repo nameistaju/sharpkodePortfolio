@@ -70,7 +70,7 @@ Consulting principles:
 - For pricing questions, explain likely ranges, what changes the price, which option fits best, and one next step. Do not answer pricing in one sentence.
 - For marketing questions, include actionable advice such as SEO, landing pages, funnels, ads, content, analytics, review management, or conversion improvements when relevant.
 - For technology questions, explain tradeoffs in plain business language.
-- For objections such as "too expensive", "need time", "already have a website", or "need approval", respond calmly, reduce risk, and suggest a practical path.
+- For objections such as "too expensive", "need time", "already have a website", or "need approval", respond calmly, reduce risk, and suggest a path.
 - Cross-sell only when it genuinely helps: website to SEO, SEO to Google Business Profile or ads, ads to landing pages, AI to automation, restaurant to reviews, dental to booking, real estate to CRM.
 
 Style:
@@ -79,48 +79,7 @@ Professional, friendly, confident, premium, human, concise but complete. Avoid r
 Safety and accuracy:
 Do not invent exact prices, client names, guarantees, timelines, legal claims, or policies that are not in the retrieved context. If details are missing, say what usually affects the answer and ask one follow-up question. If you truly cannot help, say: "${FALLBACK_MESSAGE}"`;
 
-async function generateAnswer({ question, contexts }) {
-  const model = getModel();
-  const apiKey = getApiKey();
-  
-  const contextText = contexts?.length
-    ? contexts.map((ctx, index) => `Context ${index + 1} (${ctx.source}):\n${ctx.text}`).join("\n\n---\n\n")
-    : "No high-confidence retrieved chunks were found. Continue as SharpKode's AI Project Consultant using safe company-level knowledge and ask a helpful follow-up when scope is unclear.";
-
-  const messages = [
-    { role: "system", content: systemPrompt },
-    { role: "user", content: `Use the following context to answer:\n\n${contextText}\n\nQuestion:\n${question}` }
-  ];
-
-  console.info("[SharpAI:NVIDIA] Calling NVIDIA NIM", { model, contextCount: contexts?.length || 0 });
-  
-  const response = await fetch(`${API_ROOT}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      temperature: 0.3,
-      max_tokens: 1024,
-      stream: false
-    })
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`NVIDIA completions API error ${response.status}: ${errorText}`);
-  }
-
-  const payload = await response.json();
-  const text = payload?.choices?.[0]?.message?.content;
-  console.info("[SharpAI:NVIDIA] NVIDIA responded", { hasText: Boolean(text) });
-  return text || FALLBACK_MESSAGE;
-}
-
-async function* generateAnswerStream({ question, contexts, history }) {
+async function generateAnswer({ question, contexts, history }) {
   const model = getModel();
   const apiKey = getApiKey();
   const messages = [
@@ -128,7 +87,7 @@ async function* generateAnswerStream({ question, contexts, history }) {
     ...formatMessages({ question, contexts, history })
   ];
 
-  console.info("[SharpAI:NVIDIA] Calling NVIDIA NIM Non-Stream", { model, contextCount: contexts?.length || 0 });
+  console.info("[SharpAI:NVIDIA] Calling NVIDIA NIM", { model, contextCount: contexts?.length || 0 });
 
   const response = await fetch(`${API_ROOT}/chat/completions`, {
     method: "POST",
@@ -151,18 +110,17 @@ async function* generateAnswerStream({ question, contexts, history }) {
   if (!response.ok) {
     const errorText = await response.text();
     console.error("NVIDIA ERROR RESPONSE:", errorText);
-    throw new Error(`NVIDIA non-stream API error ${response.status}: ${errorText}`);
+    throw new Error(`NVIDIA API error ${response.status}: ${errorText}`);
   }
 
   const payload = await response.json();
   console.log("ENTIRE JSON BODY:", JSON.stringify(payload, null, 2));
 
-  const text = payload?.choices?.[0]?.message?.content || FALLBACK_MESSAGE;
-  yield text;
+  const text = payload?.choices?.[0]?.message?.content;
+  return text || FALLBACK_MESSAGE;
 }
 
 module.exports = {
   FALLBACK_MESSAGE,
-  generateAnswer,
-  generateAnswerStream
+  generateAnswer
 };

@@ -1,6 +1,6 @@
 const express = require("express");
 const { answerQuestion, retrieve, ensureVectorStore } = require("../services/rag");
-const { generateAnswerStream, FALLBACK_MESSAGE } = require("../services/nvidia");
+const { generateAnswer, FALLBACK_MESSAGE } = require("../services/nvidia");
 const { appendJson, cleanString, readJson } = require("../services/storage");
 
 const router = express.Router();
@@ -117,17 +117,15 @@ router.post("/chat", async (req, res) => {
     promptTime = Date.now() - startPrompt;
     console.log("Prompt created");
 
-    // 4. Stream from NVIDIA NIM API
+    // 4. Generate response from NVIDIA NIM API
     const startNvidia = Date.now();
     console.log("Calling NVIDIA NIM...");
-    const stream = generateAnswerStream({ question: message, contexts, history });
- 
-    for await (const chunk of stream) {
-      answerAccumulator += chunk;
-      res.write(JSON.stringify({ type: "chunk", text: chunk }) + "\n");
-    }
+    const answer = await generateAnswer({ question: message, contexts, history });
+    answerAccumulator = answer;
     nvidiaTime = Date.now() - startNvidia;
     console.log("NVIDIA response:", answerAccumulator);
+
+    res.write(JSON.stringify({ type: "chunk", text: answerAccumulator }) + "\n");
 
     const leadForm = isLeadIntent(message);
     res.write(JSON.stringify({
