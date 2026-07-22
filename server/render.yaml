@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: sharpkode-api
+    env: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ALLOWED_ORIGINS
+        value: https://sharpkode.com,https://www.sharpkode.com
+      - key: GEMINI_API_KEY
+        sync: false
+    autoDeploy: false

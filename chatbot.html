@@ -1,0 +1,50 @@
+<!DOCTYPE html><html lang="en"><head>
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-W4B58XF9');</script>
+<!-- End Google Tag Manager -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SharpAI Chatbot Integration</title>
+    <link rel="stylesheet" href="./assets/css/style.css">
+    <link rel="stylesheet" href="./assets/css/chatbot.css">
+  
+    <style id="mobile-touch-fix">@media (max-width: 768px) { html, body { overflow-x: hidden; } button, a.btn, input[type="submit"], input[type="button"] { min-height: 44px; } }</style>
+  
+<style id="mobile-global-audit">
+  @media (max-width: 768px) {
+    html, body { overflow-x: hidden; width: 100%; position: relative; }
+    svg:not(.sharpai-widget svg) { max-width: 100%; height: auto; }
+    
+    /* Process Timeline stacking */
+    .timeline-line { display: none !important; }
+    .process-card { position: static !important; width: 100% !important; transform: none !important; margin-bottom: 1.5rem; }
+    .process-card::before, .process-card::after { display: none !important; }
+    
+    /* Testimonial oversized quotes */
+    .testimonial-quote-icon { opacity: 0.1; width: 60px; height: 60px; position: absolute; top: 1rem; right: 1rem; z-index: 0; }
+    .testimonial-content { position: relative; z-index: 1; }
+  }
+</style>
+</head>
+  <body style="min-height:100vh;background:#04172e;color:white;display:grid;place-items:center;padding:2rem;">
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W4B58XF9"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+    <main style="max-width:720px;text-align:center;">
+      <h1 style="font-size:2.5rem;font-weight:700;margin-bottom:1rem;">SharpAI Chatbot</h1>
+      <p style="font-size:1.125rem;color:#cbd5e1;line-height:1.7;">This page is only a standalone integration reference. The production widget is injected into the existing site pages through chatbot.css and chatbot.js.</p>
+    </main>
+    <script>
+      window.SHARPAI_API_BASE = "http://localhost:5050";
+    </script>
+    <script src="./assets/js/config.js"></script>
+    <script src="./assets/js/chatbot.js"></script>
+  
+
+
+</body></html>

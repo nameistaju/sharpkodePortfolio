@@ -62,6 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       mobileBtn.classList.add("text-white");
       mobileBtn.classList.remove("text-black");
+      mobileBtn.setAttribute("aria-expanded", "true");
     };
 
     const closeMenu = () => {
@@ -80,9 +81,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (isSticky) {
         mobileBtn.classList.add("text-black");
         mobileBtn.classList.remove("text-white");
+        mobileBtn.setAttribute("aria-expanded", "false");
       } else {
         mobileBtn.classList.add("text-white");
         mobileBtn.classList.remove("text-black");
+        mobileBtn.setAttribute("aria-expanded", "false");
       }
     };
 
@@ -136,6 +139,8 @@ document.addEventListener("DOMContentLoaded", () => {
               otherSub.style.opacity = "0";
               otherSub.style.visibility = "hidden";
               otherSub.classList.add("invisible");
+              const otherSpan = otherLi.querySelector("span.cursor-pointer");
+              if (otherSpan) otherSpan.setAttribute("aria-expanded", "false");
             }
           });
 
@@ -144,11 +149,13 @@ document.addEventListener("DOMContentLoaded", () => {
             submenu.style.opacity = "1";
             submenu.style.visibility = "visible";
             submenu.classList.remove("invisible");
+            span.setAttribute("aria-expanded", "true");
           } else {
             submenu.style.maxHeight = "0px";
             submenu.style.opacity = "0";
             submenu.style.visibility = "hidden";
             submenu.classList.add("invisible");
+            span.setAttribute("aria-expanded", "false");
           }
         });
       }
@@ -356,29 +363,7 @@ document.addEventListener("DOMContentLoaded", () => {
     handleScroll();
   };
 
-  const setupProgressButton = () => {
-    if (!progressBtn) {
-      return;
-    }
 
-    const updateProgress = () => {
-      const scrollTop = window.scrollY;
-      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = scrollHeight > 0 ? Math.round((scrollTop / scrollHeight) * 100) : 0;
-
-      progressBtn.style.background = `conic-gradient(rgb(49, 186, 169) ${progress}%, rgb(215, 215, 215) ${progress}%)`;
-      progressBtn.classList.toggle("opacity-0", scrollTop < 80);
-      progressBtn.classList.toggle("translate-y-3", scrollTop < 80);
-      progressBtn.classList.toggle("pointer-events-none", scrollTop < 80);
-    };
-
-    progressBtn.addEventListener("click", () => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    });
-
-    window.addEventListener("scroll", updateProgress);
-    updateProgress();
-  };
 
   const setupPopup = () => {
     if (!popup) {
@@ -413,6 +398,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const hasSeenPopup = sessionStorage.getItem("hiringPopupShown");
     if (!hasSeenPopup) {
       window.setTimeout(() => {
+        if (document.querySelector(".sharpai-widget.is-chat-open")) return;
         openPopup();
         sessionStorage.setItem("hiringPopupShown", "true");
       }, 1400);
@@ -474,10 +460,9 @@ document.addEventListener("DOMContentLoaded", () => {
   setupMobileMenu();
   setupMobileSubmenus();
   setupSwipers();
-  setupAOS();
   setupAccordion();
   setupStickyHeader();
-  setupProgressButton();
+
   setupPopup();
   setupTiltCards();
 
@@ -490,7 +475,11 @@ document.addEventListener("DOMContentLoaded", () => {
     items.forEach((item) => {
       const trigger = item.querySelector('.faq-trigger');
       const body = item.querySelector('.faq-body');
-      const icon = item.querySelector('.faq-icon i');
+      // NOTE: The FAQ was redesigned to use inline SVG chevrons (no data-lucide).
+      // Do NOT call lucide.createIcons() here — it scans the entire document
+      // and destroys/recreates every icon element, which triggers AOS to
+      // re-evaluate all sections and flash them invisible. CSS-only rotation
+      // (via the .rotate-180 class in the HTML toggleFaq function) handles the icon.
 
       if (!trigger || !body) return;
 
@@ -500,16 +489,11 @@ document.addEventListener("DOMContentLoaded", () => {
         // Close all
         items.forEach((otherItem) => {
           const otherBody = otherItem.querySelector('.faq-body');
-          const otherIcon = otherItem.querySelector('.faq-icon i');
-          const otherTrigger = otherItem.querySelector('.faq-trigger');
           if (otherBody && !otherBody.classList.contains('hidden')) {
             otherBody.classList.add('hidden');
             otherItem.classList.remove('border-primary/50');
             otherItem.classList.add('border-white/10');
-            if (otherIcon && typeof lucide !== 'undefined') {
-              otherIcon.setAttribute('data-lucide', 'plus');
-              lucide.createIcons();
-            }
+            // NO lucide.createIcons() here — would corrupt AOS and entire icon set
           }
         });
 
@@ -518,17 +502,20 @@ document.addEventListener("DOMContentLoaded", () => {
           body.classList.remove('hidden');
           item.classList.add('border-primary/50');
           item.classList.remove('border-white/10');
-          if (icon && typeof lucide !== 'undefined') {
-            icon.setAttribute('data-lucide', 'minus');
-            lucide.createIcons();
-          }
+          // NO lucide.createIcons() here — would corrupt AOS and entire icon set
         }
       });
     });
   };
 
-  setupFAQ();
+  // Run Lucide BEFORE setupAOS so icon DOM replacements finish
+  // before AOS attaches IntersectionObservers. Running it after AOS
+  // causes a race: Lucide's replaceWith() triggers AOS to re-evaluate
+  // all sections, flashing them invisible (the bug that looked like a reload).
   if (typeof lucide !== 'undefined') {
     lucide.createIcons();
   }
+
+  setupFAQ();
+  setupAOS();
 });

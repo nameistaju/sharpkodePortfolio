@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: sharpai-rag-api
+    env: node
+    rootDir: server
+    buildCommand: npm install && npm run index
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: GEMINI_EMBEDDING_MODEL
+        value: gemini-embedding-001
+      - key: ALLOWED_ORIGINS
+        value: https://sharpkode.com,https://www.sharpkode.com,https://api.sharpkode.com
