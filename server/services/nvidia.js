@@ -128,7 +128,7 @@ async function* generateAnswerStream({ question, contexts, history }) {
     ...formatMessages({ question, contexts, history })
   ];
 
-  console.info("[SharpAI:NVIDIA] Calling NVIDIA NIM Stream", { model, contextCount: contexts?.length || 0 });
+  console.info("[SharpAI:NVIDIA] Calling NVIDIA NIM Non-Stream", { model, contextCount: contexts?.length || 0 });
 
   const response = await fetch(`${API_ROOT}/chat/completions`, {
     method: "POST",
@@ -141,44 +141,24 @@ async function* generateAnswerStream({ question, contexts, history }) {
       messages,
       temperature: 0.3,
       max_tokens: 1024,
-      stream: true
+      stream: false
     })
   });
 
+  console.log("STATUS CODE:", response.status);
+  console.log("RESPONSE HEADERS:", JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2));
+
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`NVIDIA stream API error ${response.status}: ${errorText}`);
+    console.error("NVIDIA ERROR RESPONSE:", errorText);
+    throw new Error(`NVIDIA non-stream API error ${response.status}: ${errorText}`);
   }
 
-  const reader = response.body.getReader();
-  let buffer = "";
-  const decoder = new TextDecoder("utf-8");
+  const payload = await response.json();
+  console.log("ENTIRE JSON BODY:", JSON.stringify(payload, null, 2));
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    buffer += typeof value === "string" ? value : decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop();
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed || !trimmed.startsWith("data: ")) continue;
-      const dataStr = trimmed.slice(6).trim();
-      if (dataStr === "[DONE]") break;
-
-      try {
-        const parsed = JSON.parse(dataStr);
-        const text = parsed?.choices?.[0]?.delta?.content;
-        if (text) {
-          yield text;
-        }
-      } catch (err) {
-        console.error("Failed to parse SSE line:", err, trimmed);
-      }
-    }
-  }
+  const text = payload?.choices?.[0]?.message?.content || FALLBACK_MESSAGE;
+  yield text;
 }
 
 module.exports = {
