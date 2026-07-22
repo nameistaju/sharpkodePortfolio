@@ -74,14 +74,9 @@ async function ensureVectorStore() {
     return existing;
   }
 
-  if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === "your_google_gemini_api_key_here") {
-    await fs.mkdir(vectorDir, { recursive: true });
-    await fs.writeFile(vectorFile, JSON.stringify({ createdAt: null, entries: [] }, null, 2));
-    vectorCache = { createdAt: null, entries: [] };
-    return vectorCache;
-  }
-
-  return buildVectorStore();
+  console.warn("Vector store missing. Run npm run build:vectors");
+  vectorCache = { createdAt: null, entries: [] };
+  return vectorCache;
 }
 
 function expandQuery(question) {

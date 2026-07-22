@@ -8,7 +8,8 @@
     "start": "node -r ./config.js server.js",
     "dev": "nodemon --exec \"node -r ./config.js server.js\"",
     "reindex": "node -r ./config.js services/rag.js --reindex",
-    "index": "npm run reindex"
+    "index": "npm run reindex",
+    "build:vectors": "node scripts/buildVectorStore.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
