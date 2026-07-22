@@ -43,19 +43,19 @@
   width: 62px;
   height: 62px;
   border-radius: 50%;
-  background: var(--sharpai-blue-gradient);
-  box-shadow: var(--sharpai-shadow), var(--sharpai-glow);
+  background: transparent;
+  box-shadow: none;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   overflow: hidden;
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .sharpai-launcher:hover {
   transform: scale(1.08);
-  box-shadow: var(--sharpai-shadow), 0 0 24px rgba(37, 99, 235, 0.45);
+  box-shadow: none;
 }
 
 .sharpai-launcher-img {
