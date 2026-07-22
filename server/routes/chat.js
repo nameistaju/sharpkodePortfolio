@@ -1,16 +1,48 @@
 const express = require("express");
-const { answerQuestion } = require("../services/rag");
+const { answerQuestion, retrieve } = require("../services/rag");
+const { generateAnswerStream, FALLBACK_MESSAGE } = require("../services/gemini");
 const { appendJson, cleanString, readJson } = require("../services/storage");
-const { FALLBACK_MESSAGE } = require("../services/gemini");
 
 const router = express.Router();
 
-function isEmail(value) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+const responseCache = new Map();
+responseCache.set("services", {
+  answer: "SharpKode offers a full suite of digital solutions:\n\n• **Website Development:** High-converting business sites, e-commerce, and portfolios.\n• **Custom Software & ERP:** Custom CRMs, admin dashboards, and internal business tools.\n• **AI Automation:** Intelligent chatbots, RAG systems, and workflow automation.\n• **Mobile App Development:** Native iOS/Android and Flutter apps.\n• **Digital Marketing & SEO:** Search Engine Optimization, Meta/Google Ads, and lead generation.",
+  leadForm: false
+});
+
+responseCache.set("pricing", {
+  answer: "We offer clear, transparent pricing packages:\n\n• **Basic Package (Rs 9,999/mo):** Basic website, 1 video, 3 posters, monthly maintenance.\n• **Standard Package (Rs 19,999/mo):** Standard website, SEO, 2 videos, 5 posters, Google Ads setup.\n• **Advanced Package (Rs 29,999/mo):** Dynamic website, SEO, weekly influencer promotion, 3 videos, everyday posters, cinema ads.\n\nAll packages can be customized. Contact us or book a call for a tailored quote.",
+  leadForm: false
+});
+
+responseCache.set("contact", {
+  answer: "You can reach the SharpKode team instantly:\n\n• **WhatsApp:** [Chat Now](https://wa.me/917799343436)\n• **Phone:** +91 77993 43436\n• **Email:** info@sharpkode.com\n• **Office:** Visakhapatnam, India.\n\nOr simply fill out our contact form right here in the chat!",
+  leadForm: true
+});
+
+responseCache.set("portfolio", {
+  answer: "Explore some of our featured client work:\n\n• **Zeta Real Estate Portal:** High-converting real estate search & listing platform (Next.js/Tailwind).\n• **Mammu Interior Designers:** Immersive showcase and booking portal for premium interiors (React/Figma).\n• **Aura Spa & Wellness:** Sleek appointment scheduling and package booking system.\n\nVisit our [Portfolio Page](./portfolio.html) to see all projects.",
+  leadForm: false
+});
+
+responseCache.set("company", {
+  answer: "SharpKode Tech Solutions is a professional software development and digital solutions company. We specialize in websites, custom software, AI integrations, mobile apps, and performance marketing to help businesses automate and scale.",
+  leadForm: false
+});
+
+function getCachedResponse(message) {
+  const normalized = String(message || "").toLowerCase().trim();
+  if (/^(services|what do you do|our services|what services)\b/.test(normalized)) return responseCache.get("services");
+  if (/^(price|pricing|cost|packages|how much|what package)\b/.test(normalized)) return responseCache.get("pricing");
+  if (/^(contact|phone|email|whatsapp|address|office|call us)\b/.test(normalized)) return responseCache.get("contact");
+  if (/^(portfolio|projects|case studies|our work|featured projects)\b/.test(normalized)) return responseCache.get("portfolio");
+  if (/^(company|who are you|about sharpkode|about us|sharpkode)\b/.test(normalized)) return responseCache.get("company");
+  return null;
 }
 
-function isPhone(value) {
-  return /^[+\d][\d\s()-]{7,18}$/.test(value);
+function isLeadIntent(message) {
+  return /\b(quote|quotation|estimate|proposal|consultation|meeting|appointment|call|contact|talk\s+to\s+(a\s+)?human|talk\s+to\s+(the\s+)?team|hire|start\s+(a\s+)?project)\b/i.test(message);
 }
 
 router.post("/chat", async (req, res) => {
@@ -23,47 +55,119 @@ router.post("/chat", async (req, res) => {
     return;
   }
 
-  console.info("[SharpAI:Route] Request received by Express", { sessionId, length: message.length });
   const timestamp = new Date().toISOString();
+  console.info("[SharpAI:Route] Request received by Express", { sessionId, length: message.length });
+
+  // 1. Instant Cache Check
+  const cached = getCachedResponse(message);
+  if (cached) {
+    console.info("[SharpAI:Route] Instant cache hit", { message });
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Transfer-Encoding", "chunked");
+    res.write(JSON.stringify({ type: "chunk", text: cached.answer }) + "\n");
+    res.write(JSON.stringify({ type: "meta", leadForm: cached.leadForm, contexts: [] }) + "\n");
+    res.end();
+    return;
+  }
+
+  // 2. Performance Tracking Variables
+  const startTotal = Date.now();
+  let retrievalTime = 0;
+  let promptTime = 0;
+  let geminiTime = 0;
+
+  // Set streaming headers
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader("Transfer-Encoding", "chunked");
+
+  let contexts = [];
+  let history = [];
+  let answerAccumulator = "";
+
   try {
-    const result = await answerQuestion(message);
-    console.info("[SharpAI:Route] Response sent to frontend", { sessionId, contexts: result.contexts?.length || 0, leadForm: result.leadForm });
-    await appendJson("chat-history.json", {
+    // 3. Parallel retrieval and history loading
+    const startRetrieval = Date.now();
+    const retrievalPromise = retrieve(message);
+    const historyPromise = readJson("conversation-logs.json", []);
+
+    // Wait concurrently
+    const [retrievedContexts, allLogs] = await Promise.all([retrievalPromise, historyPromise]);
+    contexts = retrievedContexts;
+    retrievalTime = Date.now() - startRetrieval;
+
+    const startPrompt = Date.now();
+    history = allLogs
+      .filter((log) => log.sessionId === sessionId)
+      .map((log) => ({ role: log.role, content: log.content }));
+    promptTime = Date.now() - startPrompt;
+
+    // 4. Stream from Gemini API
+    const startGemini = Date.now();
+    const stream = generateAnswerStream({ question: message, contexts, history });
+
+    for await (const chunk of stream) {
+      answerAccumulator += chunk;
+      res.write(JSON.stringify({ type: "chunk", text: chunk }) + "\n");
+    }
+    geminiTime = Date.now() - startGemini;
+
+    const leadForm = isLeadIntent(message);
+    res.write(JSON.stringify({
+      type: "meta",
+      leadForm,
+      contexts: contexts.map(({ source, score }) => ({ source, score }))
+    }) + "\n");
+    res.end();
+
+    const totalTime = Date.now() - startTotal;
+
+    // 14. Performance Monitoring Logs
+    console.info(`\nPerformance Stats:
+Retrieval: ${retrievalTime}ms
+Prompt:    ${promptTime}ms
+Gemini:    ${geminiTime}ms
+Total:     ${totalTime}ms\n`);
+
+    // Async log saving (do not block the response)
+    appendJson("chat-history.json", {
       sessionId,
       message,
-      answer: result.answer,
-      contexts: result.contexts,
+      answer: answerAccumulator,
+      contexts: contexts.map(({ source, score }) => ({ source, score })),
       timestamp
-    });
-    await appendJson("conversation-logs.json", {
+    }).catch(console.error);
+
+    appendJson("conversation-logs.json", {
       sessionId,
       role: "user",
       content: message,
       timestamp
-    });
-    await appendJson("conversation-logs.json", {
-      sessionId,
-      role: "assistant",
-      content: result.answer,
-      contexts: result.contexts,
-      timestamp: new Date().toISOString()
-    });
-    res.json(result);
+    }).then(() => {
+      appendJson("conversation-logs.json", {
+        sessionId,
+        role: "assistant",
+        content: answerAccumulator,
+        contexts: contexts.map(({ source, score }) => ({ source, score })),
+        timestamp: new Date().toISOString()
+      }).catch(console.error);
+    }).catch(console.error);
+
   } catch (error) {
     console.error("[SharpAI:Route] Chat flow failed", { sessionId, reason: error.message });
-    await appendJson("chat-history.json", {
+    res.write(JSON.stringify({
+      type: "chunk",
+      text: "I'm having trouble answering that right now. Would you like to try again, contact us on WhatsApp, or talk to our team?"
+    }) + "\n");
+    res.write(JSON.stringify({ type: "meta", leadForm: false, contexts: [], error: error.message }) + "\n");
+    res.end();
+
+    appendJson("chat-history.json", {
       sessionId,
       message,
       answer: FALLBACK_MESSAGE,
       error: error.message,
       timestamp
-    });
-    res.status(200).json({
-      answer: "I'm having trouble answering that right now. Would you like to try again, contact us on WhatsApp, or talk to our team?",
-      contexts: [],
-      leadForm: false,
-      error: error.message
-    });
+    }).catch(console.error);
   }
 });
 

@@ -1,9 +1,11 @@
-
 (() => {
   const API_BASE = resolveApiBase();
   const WHATSAPP_URL = "https://wa.me/917799343436?text=Hi%20SharpKode%20Team%2C%20I%20found%20your%20website%20and%20would%20like%20to%20discuss%20my%20project.";
   const CONTACT_EMAIL = "info@sharpkode.com";
   const CONTACT_PHONE = "+917799343436";
+
+  let isWindowLoaded = false;
+  let secondaryShown = false;
 
   function resolveApiBase() {
     const configured =
@@ -24,63 +26,16 @@
   }
 
   const icons = {
-    bot: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="12" x="3" y="8" rx="3"></rect><path d="M12 8V4"></path><path d="M8 4h8"></path><circle cx="8" cy="14" r="1"></circle><circle cx="16" cy="14" r="1"></circle><path d="M9.5 18h5"></path></svg>',
-    send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg>',
+    send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg>',
     close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>',
-    minus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path></svg>',
-    spark: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="8" width="16" height="12" rx="4" fill="url(#paint0_linear)" stroke="currentColor" stroke-width="1.5"/><path d="M12 8V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M9 4H15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="9" cy="14" r="1.5" fill="white"/><circle cx="15" cy="14" r="1.5" fill="white"/><path d="M10 18H14" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M2 13H4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M20 13H22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><defs><linearGradient id="paint0_linear" x1="4" y1="8" x2="20" y2="20" gradientUnits="userSpaceOnUse"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient></defs></svg>',
-    services: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"></path><path d="M7 7v13"></path><path d="M17 7v13"></path><path d="M5 20h14"></path><path d="M9 3h6l1 4H8Z"></path></svg>',
-    pricing: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12V8H4v8a2 2 0 0 0 2 2h8"></path><path d="M4 8l2-4h12l2 4"></path><path d="M16 18h6"></path><path d="M19 15v6"></path></svg>',
-    portfolio: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="14" x="3" y="5" rx="2"></rect><path d="M8 5V3h8v2"></path><path d="M3 10h18"></path></svg>',
-    contact: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.32 1.77.6 2.61a2 2 0 0 1-.45 2.11L8 9.7a16 16 0 0 0 6.3 6.3l1.26-1.26a2 2 0 0 1 2.11-.45c.84.28 1.71.48 2.61.6A2 2 0 0 1 22 16.92Z"></path></svg>',
+    services: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>',
+    pricing: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>',
+    software: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M21 15H3M9 21V15"></path></svg>',
+    portfolio: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>',
+    contact: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.32 1.77.6 2.61a2 2 0 0 1-.45 2.11L8 9.7a16 16 0 0 0 6.3 6.3l1.26-1.26a2 2 0 0 1 2.11-.45c.84.28 1.71.48 2.61.6A2 2 0 0 1 22 16.92Z"></path></svg>',
+    spark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg>',
+    bot: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="4.5"></rect><path d="M12 7V3M9 3h6"></path><circle cx="8.5" cy="13.5" r="1.5" fill="currentColor"></circle><circle cx="15.5" cy="13.5" r="1.5" fill="currentColor"></circle><path d="M10 17h4"></path></svg>',
     whatsapp: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2a9.87 9.87 0 0 0-8.55 14.82L2.3 22l5.3-1.14A9.88 9.88 0 1 0 12.04 2Zm0 1.8a8.08 8.08 0 1 1 0 16.16 8 8 0 0 1-4.08-1.12l-.37-.22-2.82.6.63-2.72-.25-.4A8.08 8.08 0 0 1 12.04 3.8Zm-3.4 4.1c-.18 0-.46.06-.7.33-.24.26-.92.9-.92 2.18s.94 2.53 1.07 2.7c.13.18 1.82 2.9 4.5 3.95 2.22.88 2.68.7 3.16.66.49-.05 1.57-.64 1.79-1.26.22-.62.22-1.15.15-1.26-.06-.11-.24-.18-.51-.31-.27-.14-1.58-.78-1.83-.87-.24-.09-.42-.14-.6.13-.17.27-.69.87-.84 1.04-.16.18-.31.2-.58.07-.27-.14-1.14-.42-2.17-1.33-.8-.72-1.35-1.6-1.51-1.87-.15-.27-.02-.42.12-.55.12-.12.27-.31.4-.47.14-.15.18-.26.27-.44.09-.18.05-.33-.02-.47-.07-.13-.6-1.45-.82-1.98-.22-.52-.44-.45-.6-.46h-.52Z"></path></svg>'
-  };
-
-  const actionGroups = {
-    services: {
-      title: "Services",
-      description: "Choose what you want to build.",
-      icon: icons.services,
-      options: [
-        { label: "Website Development", prompt: "I need a website. Help me choose the right type and next steps." },
-        { label: "AI Solutions", prompt: "Tell me about SharpKode AI solutions for my business." },
-        { label: "Mobile Apps", prompt: "I want to develop a mobile app. What do you need from me?" },
-        { label: "ERP Software", prompt: "I need ERP or workforce management software for my company." }
-      ]
-    },
-    pricing: {
-      title: "Pricing",
-      description: "Estimate budget or request a quote.",
-      icon: icons.pricing,
-      options: [
-        { label: "Website Cost", prompt: "What is the estimated cost for a business website?" },
-        { label: "Software Quote", prompt: "Can you prepare a free quotation for custom software?", lead: true },
-        { label: "App Budget", prompt: "What budget should I plan for a mobile app?" },
-        { label: "Free Consultation", prompt: "I want a free consultation and quotation.", lead: true }
-      ]
-    },
-    portfolio: {
-      title: "Portfolio",
-      description: "See relevant client work.",
-      icon: icons.portfolio,
-      options: [
-        { label: "Featured Projects", prompt: "Show me SharpKode portfolio and featured client projects." },
-        { label: "Web Projects", prompt: "Show website development projects in the portfolio." },
-        { label: "App Projects", prompt: "Show mobile app or software projects from the portfolio." },
-        { label: "Open Portfolio", url: "./portfolio.html" }
-      ]
-    },
-    contact: {
-      title: "Contact",
-      description: "Talk to the SharpKode team.",
-      icon: icons.contact,
-      options: [
-        { label: "Talk to Human", prompt: "I want to talk to the SharpKode team about my project.", lead: true },
-        { label: "WhatsApp", url: WHATSAPP_URL, external: true },
-        { label: "Call", url: `tel:${CONTACT_PHONE}` },
-        { label: "Email", url: `mailto:${CONTACT_EMAIL}` }
-      ]
-    }
   };
 
   const LEAD_THRESHOLD = Number(window.SHARPAI_LEAD_THRESHOLD || 70);
@@ -175,23 +130,64 @@
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }
 
-
+  // Circular Launcher with uploaded botIcon.png
   function createWidget() {
     if (document.querySelector(".sharpai-widget")) return;
 
     const widget = document.createElement("div");
     widget.className = "sharpai-widget";
     widget.innerHTML = `
+      <div class="sharpai-floating-actions" aria-label="SharpKode quick contact actions">
+        <a class="sharpai-whatsapp" href="${WHATSAPP_URL}" target="_blank" rel="noopener noreferrer" aria-label="Chat with SharpKode on WhatsApp">${icons.whatsapp}<span>WhatsApp</span></a>
+        <button class="sharpai-launcher" type="button" aria-label="Open SharpAI chat" data-sharpai-launcher>
+          <img class="sharpai-launcher-img" src="./assets/images/botIcon.png" alt="SharpAI" />
+        </button>
+      </div>
+    `;
+
+    document.body.appendChild(widget);
+
+    const launcher = widget.querySelector("[data-sharpai-launcher]");
+    launcher.addEventListener("click", () => {
+      setOpen(true);
+    });
+
+    // ESC closes chatbot
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && state.open) {
+        setOpen(false);
+      }
+    });
+
+    // Close when clicking outside
+    document.addEventListener("click", (e) => {
+      if (state.open && !widget.contains(e.target)) {
+        setOpen(false);
+      }
+    });
+  }
+
+  // Lazy-load chat window with premium glassmorphism styling
+  function lazyLoadWindow(widget) {
+    if (isWindowLoaded) return;
+    isWindowLoaded = true;
+
+    const windowHtml = `
       <section class="sharpai-window" role="dialog" aria-label="SharpAI AI Project Consultant" aria-modal="false" aria-live="polite">
         <header class="sharpai-header">
-          <div class="sharpai-avatar" aria-hidden="true">${icons.bot}</div>
-          <div class="sharpai-title-wrap">
-            <span class="sharpai-title">SharpAI</span>
-            <span class="sharpai-subtitle">AI Project Consultant</span>
-            <span class="sharpai-status"><span class="sharpai-status-dot"></span>Usually replies instantly</span>
+          <div class="sharpai-header-left">
+            <div class="sharpai-avatar" aria-hidden="true">
+              <img src="./assets/images/botIcon.png" alt="SharpAI" />
+            </div>
+            <div class="sharpai-title-wrap">
+              <span class="sharpai-title">SharpAI</span>
+              <span class="sharpai-status">
+                <span class="sharpai-status-dot"></span>
+                <span>Online ●</span>
+              </span>
+            </div>
           </div>
           <div class="sharpai-header-actions">
-            <button class="sharpai-icon-btn" type="button" data-sharpai-minimize aria-label="Minimize SharpAI">${icons.minus}</button>
             <button class="sharpai-icon-btn" type="button" data-sharpai-close aria-label="Close SharpAI">${icons.close}</button>
           </div>
         </header>
@@ -223,40 +219,33 @@
           <button class="sharpai-send" type="button" aria-label="Send message">${icons.send}</button>
         </form>
       </section>
-      <div class="sharpai-floating-actions" aria-label="SharpKode quick contact actions">
-        <a class="sharpai-whatsapp" href="${WHATSAPP_URL}" target="_blank" rel="noopener noreferrer" aria-label="Chat with SharpKode on WhatsApp">${icons.whatsapp}<span>WhatsApp</span></a>
-        <button class="sharpai-launcher" type="button" aria-label="Open SharpAI chat" data-sharpai-launcher>
-          <span class="sharpai-tooltip">Ask SharpAI</span>
-          ${icons.bot}
-        </button>
-      </div>
     `;
 
-    document.body.appendChild(widget);
+    widget.insertAdjacentHTML("afterbegin", windowHtml);
     bindEvents(widget);
-    addMessage("bot", "Welcome to SharpKode.\n\nI'm **SharpAI**, your AI Project Consultant.\n\nI can help you build a website, develop software, explore AI solutions, estimate pricing, show portfolio work, or connect with our team.");
+
+    // Initial Welcome Message
+    addMessage("bot", `Hi 👋\n\nI'm **SharpAI**.\n\nHow can I help today?`);
+    renderChips();
     renderPrimaryActions();
-    logStep("Widget rendered");
   }
 
   function bindEvents(widget) {
-    const launcher = widget.querySelector("[data-sharpai-launcher]");
     const closeBtn = widget.querySelector("[data-sharpai-close]");
-    const minimizeBtn = widget.querySelector("[data-sharpai-minimize]");
     const form = widget.querySelector("[data-sharpai-form]");
     const input = widget.querySelector("[data-sharpai-input]");
     const leadForm = widget.querySelector("[data-sharpai-lead-form]");
     const cancelLead = widget.querySelector("[data-sharpai-cancel-lead]");
 
-    launcher.addEventListener("click", () => setOpen(true));
-    closeBtn.addEventListener("click", () => setOpen(false));
-    minimizeBtn.addEventListener("click", () => setMinimized(!state.minimized));
+    closeBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setOpen(false);
+    });
 
     const submitChat = (event) => {
       event?.preventDefault();
       event?.stopPropagation();
       if (typeof event?.stopImmediatePropagation === "function") event.stopImmediatePropagation();
-      console.log("1. Send clicked");
       const message = input.value.trim();
       if (!message || state.busy) return;
       input.value = "";
@@ -272,11 +261,6 @@
 
     widget.querySelector(".sharpai-send")?.addEventListener("click", submitChat);
 
-    input.addEventListener("input", () => {
-      input.style.height = "auto";
-      input.style.height = `${Math.min(input.scrollHeight, 112)}px`;
-    });
-
     input.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
@@ -287,21 +271,60 @@
 
     leadForm.addEventListener("submit", submitLead);
     cancelLead.addEventListener("click", hideLeadForm);
+
+    // Pull down to close sheet gesture tracking on Mobile
+    let touchStartY = 0;
+    let touchMoveY = 0;
+    const windowEl = widget.querySelector(".sharpai-window");
+    const headerEl = widget.querySelector(".sharpai-header");
+
+    if (headerEl && windowEl) {
+      headerEl.addEventListener("touchstart", (e) => {
+        touchStartY = e.touches[0].clientY;
+        windowEl.style.transition = "none";
+      }, { passive: true });
+
+      headerEl.addEventListener("touchmove", (e) => {
+        touchMoveY = e.touches[0].clientY;
+        const diffY = touchMoveY - touchStartY;
+        if (diffY > 0) {
+          windowEl.style.transform = `translateY(${diffY}px)`;
+        }
+      }, { passive: true });
+
+      headerEl.addEventListener("touchend", () => {
+        windowEl.style.transition = "";
+        const diffY = touchMoveY - touchStartY;
+        if (diffY > 150 && state.open) {
+          setOpen(false);
+        }
+        windowEl.style.transform = "";
+        touchStartY = 0;
+        touchMoveY = 0;
+      });
+    }
   }
 
   function setOpen(open) {
     state.open = open;
     const widget = document.querySelector(".sharpai-widget");
-    const windowEl = document.querySelector(".sharpai-window");
-    const launcher = document.querySelector("[data-sharpai-launcher]");
-    if (!windowEl || !widget) return;
+    if (!widget) return;
+
+    if (open && !isWindowLoaded) {
+      lazyLoadWindow(widget);
+    }
+
+    const windowEl = widget.querySelector(".sharpai-window");
+    const launcher = widget.querySelector("[data-sharpai-launcher]");
+    if (!windowEl) return;
+
     widget.classList.toggle("is-chat-open", open);
     windowEl.classList.toggle("is-open", open);
     launcher?.setAttribute("aria-expanded", String(open));
     if (open) {
       logStep("Chat opened");
       setMinimized(false);
-      window.setTimeout(() => document.querySelector("[data-sharpai-input]")?.focus(), 180);
+      window.setTimeout(() => widget.querySelector("[data-sharpai-input]")?.focus(), 180);
     }
   }
 
@@ -324,7 +347,8 @@
     if (!body) return null;
     const message = document.createElement("div");
     message.className = `sharpai-message is-${role}`;
-    message.innerHTML = `${role === "bot" ? `<span class="sharpai-mini-avatar" aria-hidden="true">${icons.bot}</span>` : ""}
+    message.innerHTML = `
+      ${role === "bot" ? `<span class="sharpai-mini-avatar" aria-hidden="true"><img src="./assets/images/botIcon.png" alt="SharpAI" /></span>` : ""}
       <div class="sharpai-bubble">
         ${options.raw ? text : renderMarkdown(text)}
         <span class="sharpai-time">${timeLabel()}</span>
@@ -339,6 +363,32 @@
     document.querySelectorAll(".sharpai-action-panel").forEach((panel) => panel.remove());
   }
 
+  // 3 suggestions: Website, AI, Pricing
+  function renderChips() {
+    const body = getBody();
+    if (!body) return;
+    const chipsContainer = document.createElement("div");
+    chipsContainer.className = "sharpai-chips-container";
+    const chips = [
+      { label: "Website", prompt: "I need a website. Help me choose the right type and next steps." },
+      { label: "AI", prompt: "Tell me about SharpKode AI solutions for my business." },
+      { label: "Pricing", prompt: "What is the estimated cost of your services?" }
+    ];
+    chips.forEach(chip => {
+      const chipBtn = document.createElement("button");
+      chipBtn.type = "button";
+      chipBtn.className = "sharpai-chip";
+      chipBtn.textContent = chip.label;
+      chipBtn.addEventListener("click", () => {
+        sendMessage(chip.prompt);
+      });
+      chipsContainer.appendChild(chipBtn);
+    });
+    body.appendChild(chipsContainer);
+    scrollToBottom();
+  }
+
+  // 7 compact action buttons (Website, Software, AI, Pricing, Portfolio, Contact, Book Call)
   function renderPrimaryActions() {
     const body = getBody();
     if (!body || body.querySelector(".sharpai-actions")) return;
@@ -346,14 +396,27 @@
     actions.className = "sharpai-actions";
     actions.setAttribute("aria-label", "Primary SharpAI actions");
 
-    Object.entries(actionGroups).forEach(([key, action]) => {
+    const compactButtons = [
+      { title: "Website", icon: icons.services, prompt: "I need a website. Help me choose the right type and next steps." },
+      { title: "Software", icon: icons.software, prompt: "I need custom software or an ERP solution for my company." },
+      { title: "AI", icon: icons.bot, prompt: "Tell me about SharpKode AI solutions for my business." },
+      { title: "Pricing", icon: icons.pricing, prompt: "What is the estimated cost for website development or software?" },
+      { title: "Portfolio", icon: icons.portfolio, prompt: "Show me SharpKode portfolio and featured client projects." },
+      { title: "Contact", icon: icons.contact, prompt: "I want to talk to the SharpKode team about my project.", lead: true },
+      { title: "Book Call", icon: icons.spark, prompt: "I want a free consultation and quotation.", lead: true }
+    ];
+
+    compactButtons.forEach((btn) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "sharpai-action-card";
-      button.dataset.action = key;
-      button.setAttribute("aria-expanded", "false");
-      button.innerHTML = `<span class="sharpai-action-icon">${action.icon}</span><span><strong>${action.title}</strong><small>${action.description}</small></span>`;
-      button.addEventListener("click", () => showSecondaryOptions(key, button));
+      button.innerHTML = `
+        <span class="sharpai-action-icon">${btn.icon}</span>
+        <span class="sharpai-action-text">${btn.title}</span>
+      `;
+      button.addEventListener("click", () => {
+        sendMessage(btn.prompt);
+      });
       actions.appendChild(button);
     });
 
@@ -361,43 +424,41 @@
     scrollToBottom();
   }
 
-  function showSecondaryOptions(key, trigger) {
-    const action = actionGroups[key];
-    if (!action) return;
-    clearActionPanels();
-    document.querySelectorAll(".sharpai-action-card").forEach((card) => card.setAttribute("aria-expanded", "false"));
-    trigger?.setAttribute("aria-expanded", "true");
-
+  function showSecondaryQuickActions() {
+    if (secondaryShown) return;
+    secondaryShown = true;
+    const body = getBody();
+    if (!body) return;
     const panel = document.createElement("div");
     panel.className = "sharpai-action-panel";
-    panel.innerHTML = `<div class="sharpai-action-panel-title">${escapeHtml(action.title)} options</div>`;
-
-    action.options.forEach((option) => {
-      const item = document.createElement(option.url ? "a" : "button");
-      item.className = "sharpai-option";
-      item.textContent = option.label;
-      if (option.url) {
-        item.href = option.url;
-        if (option.external) {
-          item.target = "_blank";
-          item.rel = "noopener noreferrer";
-        }
-      } else {
-        item.type = "button";
-        item.addEventListener("click", () => {
-          clearActionPanels();
-          sendMessage(option.prompt, { openLead: option.lead });
-        });
-      }
-      panel.appendChild(item);
+    panel.innerHTML = `
+      <div class="sharpai-action-panel-title">Useful links</div>
+      <a class="sharpai-option" href="./portfolio.html">Our Portfolio</a>
+      <button class="sharpai-option" type="button" data-quote>Book Call / Quote</button>
+      <a class="sharpai-option" href="${WHATSAPP_URL}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+    `;
+    panel.querySelector("[data-quote]").addEventListener("click", () => {
+      showLeadForm("I want to book a call / request a quote.");
     });
-
-    getBody()?.appendChild(panel);
+    body.appendChild(panel);
     scrollToBottom();
   }
 
   function addTyping() {
-    return addMessage("bot", '<span class="sharpai-typing" aria-label="SharpAI is typing"><span></span><span></span><span></span></span>', { raw: true });
+    const body = getBody();
+    if (!body) return null;
+    const message = document.createElement("div");
+    message.className = "sharpai-message is-bot is-typing-indicator";
+    message.innerHTML = `
+      <span class="sharpai-mini-avatar" aria-hidden="true"><img src="./assets/images/botIcon.png" alt="SharpAI" /></span>
+      <div class="sharpai-bubble">
+        <span class="sharpai-typing-text">SharpAI is thinking</span>
+        <span class="sharpai-typing"><span></span><span></span><span></span></span>
+      </div>
+    `;
+    body.appendChild(message);
+    scrollToBottom();
+    return message;
   }
 
   function rememberUnique(list, value) {
@@ -451,9 +512,9 @@
   }
 
   function setBusy(busy) {
-    state.busy = busy;
     const send = document.querySelector(".sharpai-send");
     const input = document.querySelector("[data-sharpai-input]");
+    state.busy = busy;
     if (send) send.disabled = busy;
     if (input) input.setAttribute("aria-busy", String(busy));
   }
@@ -465,33 +526,69 @@
     logStep("User message received", { message });
     addMessage("user", message);
 
+    showSecondaryQuickActions();
+
     const typing = addTyping();
     setBusy(true);
+
     try {
-      console.log("2. Fetch started");
-      logStep("Submitting request...");
+      logStep("Submitting streaming request...");
       const response = await fetch(`${API_BASE}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message, sessionId: state.sessionId })
       });
-      const payload = await response.json().catch((error) => ({ error: `Invalid JSON response: ${error.message}` }));
-      typing?.remove();
-      console.log("3. Response received");
-      logStep("Response received:", payload);
 
       if (!response.ok) {
+        typing?.remove();
         addRecoverableError();
         return;
       }
 
-      logStep("Rendering response...");
-      addMessage("bot", payload.answer || "I'm having trouble answering that right now.");
-      console.log("4. Response rendered");
-      console.log("5. Before reload check");
-      logStep("Render complete");
-      if (shouldOpenLeadForm(message, options)) promptLeadForm(message);
-      else if (!state.leadPrompted && looksMeaningful(message) && state.leadScore >= 35 && !isLeadCooldownActive(message)) maybeOfferQuote();
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let buffer = "";
+      let botMsg = null;
+      let accumulatedText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+          try {
+            const data = JSON.parse(trimmed);
+            if (data.type === "chunk" && data.text) {
+              if (typing) {
+                typing.remove();
+              }
+              if (!botMsg) {
+                botMsg = addMessage("bot", "", { raw: true });
+              }
+              accumulatedText += data.text;
+              const bubbleEl = botMsg.querySelector(".sharpai-bubble");
+              if (bubbleEl) {
+                bubbleEl.innerHTML = renderMarkdown(accumulatedText) + `<span class="sharpai-time">${timeLabel()}</span>`;
+              }
+              scrollToBottom();
+            } else if (data.type === "meta") {
+              if (data.leadForm) {
+                promptLeadForm(message);
+              } else if (!state.leadPrompted && looksMeaningful(message) && state.leadScore >= 35 && !isLeadCooldownActive(message)) {
+                maybeOfferQuote();
+              }
+            }
+          } catch (err) {
+            console.error("Failed to parse stream line:", err, trimmed);
+          }
+        }
+      }
     } catch (error) {
       typing?.remove();
       logStep("Request failed", error.message);
@@ -588,6 +685,3 @@
     createWidget();
   }
 })();
-
-
-

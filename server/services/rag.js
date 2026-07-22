@@ -91,7 +91,7 @@ function expandQuery(question) {
   return [question, ...expansions].filter(Boolean).join("\n");
 }
 
-async function retrieve(question, limit = 8) {
+async function retrieve(question, limit = 4) {
   logStep("Loading relevant knowledge");
   if (!vectorCache) await ensureVectorStore();
   if (!vectorCache?.entries?.length) {

@@ -84,6 +84,104 @@ Do not invent exact prices, client names, guarantees, timelines, legal claims, o
   return text || FALLBACK_MESSAGE;
 }
 
+function formatContents({ question, contexts, history }) {
+  const contextText = contexts?.length
+    ? contexts.map((ctx, index) => `Context ${index + 1} (${ctx.source}):\n${ctx.text}`).join("\n\n---\n\n")
+    : "No high-confidence retrieved chunks were found. Continue as SharpKode's AI Project Consultant using safe company-level knowledge and ask a helpful follow-up when scope is unclear.";
+
+  const contents = [];
+
+  // Add older messages summary if present
+  if (history && history.length > 5) {
+    const older = history.slice(0, history.length - 5);
+    const topics = older
+      .filter(m => m.role === 'user')
+      .map(m => m.content)
+      .join(", ");
+    if (topics) {
+      contents.push({
+        role: "user",
+        parts: [{ text: `Summary of previous discussion: User asked about: ${topics.slice(0, 150)}...` }]
+      });
+      contents.push({
+        role: "model",
+        parts: [{ text: "Understood. I will keep that context in mind for our consulting session." }]
+      });
+    }
+  }
+
+  // Add last 5 messages
+  const recent = history ? history.slice(-5) : [];
+  for (const msg of recent) {
+    contents.push({
+      role: msg.role === "assistant" ? "model" : "user",
+      parts: [{ text: msg.content }]
+    });
+  }
+
+  // Add current user message with RAG context
+  contents.push({
+    role: "user",
+    parts: [{ text: `Use the following context to answer: \n\n${contextText}\n\nQuestion: ${question}` }]
+  });
+
+  return contents;
+}
+
+async function* generateAnswerStream({ question, contexts, history }) {
+  const model = getEnv("GEMINI_MODEL", "gemini-2.5-flash");
+  const apiKey = requireEnv("GEMINI_API_KEY");
+  const contents = formatContents({ question, contexts, history });
+
+  const systemPrompt = `You are SharpAI, the premium AI Business Consultant for SharpKode Tech Solutions, a Digital Marketing and Technology Company.
+Your role is not to behave like an FAQ bot. You advise visitors like a senior consultant who understands business growth, websites, software architecture, AI automation, SEO, performance marketing, branding, lead generation, operations, and digital transformation.
+Use retrieved knowledge as source of truth for services, pricing, process, and contact. Keep responses brief, human, and concise. Ask exactly ONE useful follow-up question if scope is unclear.`;
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents,
+      systemInstruction: {
+        parts: [{ text: systemPrompt }]
+      },
+      generationConfig: {
+        temperature: 0.42,
+        topP: 0.85,
+        maxOutputTokens: 1100
+      }
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Gemini stream API error ${response.status}: ${errorText}`);
+  }
+
+  let buffer = "";
+  let yieldedLength = 0;
+  for await (const byteChunk of response.body) {
+    buffer += byteChunk.toString("utf8");
+    const regex = /"text"\s*:\s*"((?:[^"\\]|\\.)*)"/g;
+    let match;
+    let fullText = "";
+    while ((match = regex.exec(buffer)) !== null) {
+      try {
+        fullText += JSON.parse(`"${match[1]}"`);
+      } catch {
+        fullText += match[1];
+      }
+    }
+    if (fullText.length > yieldedLength) {
+      const newChunk = fullText.slice(yieldedLength);
+      yieldedLength = fullText.length;
+      yield newChunk;
+    }
+  }
+}
+
 function flattenCandidateText(payload) {
   const candidate = payload?.candidates?.[0];
   if (!candidate) return "";
@@ -102,6 +200,7 @@ function flattenCandidateText(payload) {
 module.exports = {
   FALLBACK_MESSAGE,
   embedText,
-  generateAnswer
+  generateAnswer,
+  generateAnswerStream
 };
 

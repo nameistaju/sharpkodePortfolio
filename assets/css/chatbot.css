@@ -1,17 +1,16 @@
-/* SharpAI premium SaaS chatbot */
+/* Premium Glassmorphism SaaS Chatbot */
 :root {
-  --sharpai-navy: #04172e;
-  --sharpai-panel: rgba(5, 19, 38, 0.86);
-  --sharpai-panel-strong: rgba(4, 23, 46, 0.94);
-  --sharpai-glass: rgba(255, 255, 255, 0.075);
-  --sharpai-glass-strong: rgba(255, 255, 255, 0.12);
-  --sharpai-blue: #38b6ff;
-  --sharpai-blue-2: #1d4ed8;
-  --sharpai-green: #25d366;
-  --sharpai-text: #f8fafc;
-  --sharpai-muted: #aebdd0;
-  --sharpai-border: rgba(148, 190, 225, 0.2);
-  --sharpai-shadow: 0 26px 80px rgba(2, 8, 23, 0.5);
+  --sharpai-bg: rgba(15, 23, 42, 0.72);
+  --sharpai-card: rgba(30, 41, 59, 0.6);
+  --sharpai-border: rgba(255, 255, 255, 0.08);
+  --sharpai-blue: #2563EB;
+  --sharpai-blue-light: #60A5FA;
+  --sharpai-blue-gradient: linear-gradient(135deg, #2563EB, #60A5FA);
+  --sharpai-text: #F8FAFC;
+  --sharpai-muted: #94A3B8;
+  --sharpai-green: #10B981;
+  --sharpai-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  --sharpai-glow: 0 0 16px rgba(37, 99, 235, 0.3);
 }
 
 .sharpai-widget,
@@ -21,13 +20,15 @@
 
 .sharpai-widget {
   position: fixed;
-  right: 22px;
-  bottom: 22px;
+  right: 24px;
+  bottom: 24px;
   z-index: 2147483000;
-  font-family: Kanit, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: var(--sharpai-text);
+  line-height: 1.5;
 }
 
+/* Floating Actions Area */
 .sharpai-floating-actions {
   display: flex;
   align-items: center;
@@ -35,70 +36,56 @@
   justify-content: flex-end;
 }
 
-.sharpai-launcher,
-.sharpai-whatsapp {
-  position: relative;
+/* Launcher Button: Perfect Circle (62px desktop, 56px mobile) */
+.sharpai-launcher {
   border: 0;
   cursor: pointer;
-  text-decoration: none;
-  color: #fff;
-  isolation: isolate;
-  transition: opacity 0.2s ease, transform 0.24s ease, box-shadow 0.24s ease, visibility 0.2s ease;
-}
-
-.sharpai-launcher {
   width: 62px;
   height: 62px;
+  border-radius: 50%;
+  background: var(--sharpai-blue-gradient);
+  box-shadow: var(--sharpai-shadow), var(--sharpai-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+}
+
+.sharpai-launcher:hover {
+  transform: scale(1.08);
+  box-shadow: var(--sharpai-shadow), 0 0 24px rgba(37, 99, 235, 0.45);
+}
+
+.sharpai-launcher-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* WhatsApp Launcher Button */
+.sharpai-whatsapp {
+  width: 48px;
+  height: 48px;
   border-radius: 999px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, var(--sharpai-blue), var(--sharpai-blue-2));
-  box-shadow: 0 18px 44px rgba(29, 78, 216, 0.36), inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  background: #25d366;
+  color: #fff;
+  border: 0;
+  box-shadow: var(--sharpai-shadow);
+  transition: transform 0.2s ease;
+  text-decoration: none;
 }
 
-.sharpai-launcher::before {
-  content: "";
-  position: absolute;
-  inset: -7px;
-  border-radius: inherit;
-  border: 1px solid rgba(56, 182, 255, 0.48);
-  animation: sharpaiPulse 2.4s ease-out infinite;
-  z-index: -1;
+.sharpai-whatsapp span {
+  display: none;
 }
 
-.sharpai-launcher:hover,
-.sharpai-launcher:focus-visible,
-.sharpai-whatsapp:hover,
-.sharpai-whatsapp:focus-visible {
-  transform: translateY(-3px);
-}
-
-.sharpai-launcher svg {
-  width: 29px;
-  height: 29px;
-}
-
-.sharpai-widget.is-chat-open .sharpai-launcher {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transform: translateY(12px) scale(0.9);
-}
-
-.sharpai-whatsapp {
-  min-width: 62px;
-  height: 62px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 0 18px;
-  background: linear-gradient(135deg, #25d366, #128c7e);
-  box-shadow: 0 18px 42px rgba(18, 140, 126, 0.32), inset 0 0 0 1px rgba(255, 255, 255, 0.16);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
+.sharpai-whatsapp:hover {
+  transform: translateY(-2px);
 }
 
 .sharpai-whatsapp svg {
@@ -106,62 +93,46 @@
   height: 24px;
 }
 
-.sharpai-tooltip {
-  position: absolute;
-  right: 74px;
-  bottom: 17px;
-  white-space: nowrap;
-  padding: 8px 11px;
-  border-radius: 10px;
-  background: rgba(4, 23, 46, 0.94);
-  border: 1px solid rgba(56, 182, 255, 0.34);
-  color: #fff;
-  font-size: 12px;
-  line-height: 1;
-  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.26);
+/* Hide launcher when chat is open */
+.sharpai-widget.is-chat-open .sharpai-launcher,
+.sharpai-widget.is-chat-open .sharpai-whatsapp {
   opacity: 0;
-  transform: translateX(8px);
   pointer-events: none;
-  transition: opacity 0.22s ease, transform 0.22s ease;
+  transform: scale(0.9);
 }
 
-.sharpai-launcher:hover .sharpai-tooltip,
-.sharpai-launcher:focus-visible .sharpai-tooltip {
-  opacity: 1;
-  transform: translateX(0);
-}
-
+/* Chat Window Sizing (Width: 360px [max 370px], Height: 560px) */
 .sharpai-window {
   position: absolute;
   right: 0;
-  bottom: 78px;
-  width: min(410px, calc(100vw - 28px));
-  height: min(650px, calc(100vh - 112px));
+  bottom: 0;
+  width: 360px;
+  max-width: 370px;
+  height: 560px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-radius: 22px;
-  border: 1px solid rgba(148, 190, 225, 0.24);
-  background:
-    radial-gradient(circle at 18% 0%, rgba(56, 182, 255, 0.18), transparent 34%),
-    linear-gradient(180deg, rgba(4, 23, 46, 0.9), rgba(3, 12, 28, 0.94));
-  box-shadow: var(--sharpai-shadow), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
-  backdrop-filter: blur(24px) saturate(160%);
-  transform: translateY(18px) scale(0.97);
+  border-radius: 24px;
+  border: 1px solid var(--sharpai-border);
+  background: var(--sharpai-bg);
+  box-shadow: var(--sharpai-shadow);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transform: scale(0.94) translateY(24px);
   transform-origin: bottom right;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.24s ease, transform 0.24s ease;
+  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .sharpai-window.is-open {
   opacity: 1;
   pointer-events: auto;
-  transform: translateY(0) scale(1);
+  transform: scale(1) translateY(0);
 }
 
 .sharpai-window.is-minimized {
-  height: 74px;
+  height: 60px !important;
 }
 
 .sharpai-window.is-minimized .sharpai-body,
@@ -170,139 +141,134 @@
   display: none;
 }
 
+/* Header (Height: 60px, Glass background) */
 .sharpai-header {
-  min-height: 72px;
-  padding: 13px 14px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
-  gap: 11px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.035));
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 60px;
+  background: rgba(15, 23, 42, 0.4);
+  border-bottom: 1px solid var(--sharpai-border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-.sharpai-avatar,
-.sharpai-mini-avatar,
-.sharpai-action-icon {
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
+.sharpai-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .sharpai-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-  color: #fff;
-  background: linear-gradient(135deg, var(--sharpai-blue), var(--sharpai-blue-2));
-  box-shadow: 0 12px 28px rgba(29, 78, 216, 0.3), 0 0 20px rgba(56, 182, 255, 0.26);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
 }
 
-.sharpai-avatar svg {
-  width: 22px;
-  height: 22px;
+.sharpai-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .sharpai-title-wrap {
-  min-width: 0;
-  flex: 1;
-  display: grid;
-  gap: 1px;
+  display: flex;
+  flex-direction: column;
 }
 
 .sharpai-title {
-  font-size: 17px;
-  font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: 0;
-}
-
-.sharpai-subtitle {
-  font-size: 12px;
-  line-height: 1.25;
-  color: #d8e9ff;
-  font-weight: 500;
-}
-
-.sharpai-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--sharpai-muted);
-  font-size: 11px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #fff;
   line-height: 1.2;
 }
 
+.sharpai-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9.5px;
+  color: var(--sharpai-muted);
+}
+
 .sharpai-status-dot {
-  width: 7px;
-  height: 7px;
+  width: 5px;
+  height: 5px;
   border-radius: 999px;
-  background: #22c55e;
-  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+  background: var(--sharpai-green);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
 }
 
 .sharpai-header-actions {
   display: flex;
-  gap: 7px;
+  align-items: center;
+  gap: 6px;
 }
 
 .sharpai-icon-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 11px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.06);
-  color: #dbeafe;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--sharpai-border);
+  background: transparent;
+  color: var(--sharpai-muted);
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  transition: all 0.2s ease;
 }
 
-.sharpai-icon-btn:hover,
-.sharpai-icon-btn:focus-visible {
-  background: rgba(56, 182, 255, 0.16);
+.sharpai-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
   color: #fff;
-  transform: translateY(-1px);
 }
 
 .sharpai-icon-btn svg {
-  width: 17px;
-  height: 17px;
+  width: 14px;
+  height: 14px;
 }
 
+/* Scrollable Messages */
 .sharpai-body {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 14px 14px;
+  padding: 16px;
   scroll-behavior: smooth;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(56, 182, 255, 0.42) rgba(255, 255, 255, 0.05);
 }
 
+/* 9. Custom scrollbar */
 .sharpai-body::-webkit-scrollbar,
 .sharpai-textarea::-webkit-scrollbar,
 .sharpai-input::-webkit-scrollbar {
-  width: 7px;
+  width: 5px;
 }
 
 .sharpai-body::-webkit-scrollbar-track,
 .sharpai-textarea::-webkit-scrollbar-track,
 .sharpai-input::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.04);
+  background: transparent;
 }
 
 .sharpai-body::-webkit-scrollbar-thumb,
 .sharpai-textarea::-webkit-scrollbar-thumb,
 .sharpai-input::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: rgba(56, 182, 255, 0.4);
+  background: rgba(96, 165, 250, 0.6);
 }
 
+/* Messages & Bubbles (Max-width: 75%, Radius: 18px) */
 .sharpai-message {
   display: flex;
-  gap: 9px;
-  margin-bottom: 12px;
-  animation: sharpaiFadeUp 0.24s ease both;
+  gap: 10px;
+  margin-bottom: 16px;
+  max-width: 100%;
 }
 
 .sharpai-message.is-user {
@@ -310,377 +276,381 @@
 }
 
 .sharpai-mini-avatar {
-  width: 27px;
-  height: 27px;
-  border-radius: 10px;
-  color: #dff3ff;
-  background: rgba(56, 182, 255, 0.14);
-  border: 1px solid rgba(56, 182, 255, 0.24);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
 }
 
-.sharpai-mini-avatar svg {
-  width: 16px;
-  height: 16px;
+.sharpai-mini-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .sharpai-bubble {
-  max-width: 82%;
-  padding: 10px 11px 7px;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.085);
-  background: rgba(255, 255, 255, 0.075);
-  color: #eef6ff;
-  line-height: 1.48;
+  max-width: 75%;
+  padding: 12px 16px;
+  border-radius: 18px;
   font-size: 13.5px;
-  font-weight: 400;
+  line-height: 1.5;
+  border: 1px solid var(--sharpai-border);
   word-break: break-word;
 }
 
+/* Assistant Chat Bubble: Dark glass */
+.sharpai-message.is-bot .sharpai-bubble {
+  background: var(--sharpai-card);
+  color: #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* User Chat Bubble: Blue Gradient */
 .sharpai-message.is-user .sharpai-bubble {
-  max-width: 78%;
-  background: linear-gradient(135deg, rgba(56, 182, 255, 0.95), rgba(29, 78, 216, 0.95));
+  background: var(--sharpai-blue-gradient);
   color: #fff;
-  border-color: rgba(255, 255, 255, 0.18);
-  box-shadow: 0 10px 28px rgba(29, 78, 216, 0.22);
+  border-color: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
 .sharpai-bubble p {
-  margin: 0 0 8px;
+  margin: 0 0 6px 0;
 }
 
 .sharpai-bubble p:last-child {
   margin-bottom: 0;
 }
 
-.sharpai-bubble a {
-  color: #8bdcff;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.sharpai-message.is-user .sharpai-bubble a {
+.sharpai-bubble strong {
   color: #fff;
 }
 
-.sharpai-bubble code {
-  padding: 2px 5px;
-  border-radius: 6px;
-  background: rgba(2, 8, 23, 0.52);
-  font-family: Consolas, Monaco, monospace;
-  font-size: 0.92em;
+.sharpai-message.is-user .sharpai-bubble strong {
+  color: #fff;
 }
 
-.sharpai-bubble pre {
-  margin: 8px 0;
-  padding: 10px;
-  overflow-x: auto;
-  border-radius: 12px;
-  background: rgba(2, 8, 23, 0.76);
-  border: 1px solid rgba(148, 163, 184, 0.18);
+.sharpai-bubble ul {
+  margin: 4px 0 6px 14px;
+  padding: 0;
+}
+
+.sharpai-bubble li {
+  margin-bottom: 2px;
 }
 
 .sharpai-time {
   display: block;
-  margin-top: 6px;
-  color: rgba(226, 232, 240, 0.58);
-  font-size: 10px;
-  line-height: 1;
+  font-size: 9px;
+  color: var(--sharpai-muted);
+  margin-top: 4px;
 }
 
+.sharpai-message.is-user .sharpai-time {
+  color: rgba(255, 255, 255, 0.6);
+  text-align: right;
+}
+
+/* Suggestion Chips */
+.sharpai-chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 10px 36px;
+}
+
+.sharpai-chip {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--sharpai-border);
+  color: var(--sharpai-text);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sharpai-chip:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: var(--sharpai-blue-light);
+  box-shadow: 0 0 10px rgba(96, 165, 250, 0.2);
+}
+
+/* Compact Glass Pills (Website, Software, AI, Pricing, Portfolio, Contact, Book Call) */
 .sharpai-actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 9px;
-  margin: 6px 0 13px 36px;
-  animation: sharpaiFadeUp 0.28s ease both;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin: 4px 0 10px 36px;
 }
 
 .sharpai-action-card {
-  min-height: 76px;
-  padding: 11px;
-  border-radius: 16px;
-  border: 1px solid rgba(148, 190, 225, 0.18);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.095), rgba(255, 255, 255, 0.055));
-  color: #fff;
-  text-align: left;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--sharpai-border);
+  color: var(--sharpai-text);
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
   cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-size: 12px;
+  font-weight: 500;
 }
 
-.sharpai-action-card:hover,
-.sharpai-action-card:focus-visible,
-.sharpai-action-card[aria-expanded="true"] {
-  border-color: rgba(56, 182, 255, 0.52);
-  background: linear-gradient(180deg, rgba(56, 182, 255, 0.15), rgba(255, 255, 255, 0.065));
-  transform: translateY(-1px);
+.sharpai-action-card:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: var(--sharpai-blue-light);
+  transform: translateY(-1.5px);
+  box-shadow: 0 0 10px rgba(96, 165, 250, 0.15);
 }
 
 .sharpai-action-icon {
-  width: 31px;
-  height: 31px;
-  border-radius: 11px;
-  color: #8bdcff;
-  background: rgba(56, 182, 255, 0.12);
-  border: 1px solid rgba(56, 182, 255, 0.2);
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: rgba(37, 99, 235, 0.12);
+  display: grid;
+  place-items: center;
+  color: var(--sharpai-blue-light);
+  flex-shrink: 0;
 }
 
 .sharpai-action-icon svg {
-  width: 17px;
-  height: 17px;
+  width: 12px;
+  height: 12px;
 }
 
-.sharpai-action-card strong {
-  display: block;
-  font-size: 13px;
-  line-height: 1.15;
-  margin-bottom: 4px;
-}
-
-.sharpai-action-card small {
-  display: block;
-  color: var(--sharpai-muted);
-  font-size: 11px;
-  line-height: 1.28;
-  font-weight: 400;
-}
-
+/* Secondary Panels */
 .sharpai-action-panel,
 .sharpai-recovery {
-  margin: 0 0 14px 36px;
+  margin: 0 0 10px 36px;
   padding: 10px;
-  border-radius: 16px;
-  border: 1px solid rgba(148, 190, 225, 0.16);
-  background: rgba(255, 255, 255, 0.065);
+  border-radius: 12px;
+  border: 1px solid var(--sharpai-border);
+  background: var(--sharpai-card);
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  animation: sharpaiFadeUp 0.22s ease both;
+  gap: 6px;
 }
 
 .sharpai-action-panel-title {
   width: 100%;
-  color: #d8e9ff;
-  font-size: 12px;
-  font-weight: 700;
+  color: var(--sharpai-muted);
+  font-size: 11px;
+  font-weight: 500;
+  margin-bottom: 4px;
 }
 
 .sharpai-option,
 .sharpai-recovery button,
 .sharpai-recovery a {
-  min-height: 34px;
-  padding: 8px 10px;
+  padding: 5px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(56, 182, 255, 0.28);
-  background: rgba(56, 182, 255, 0.09);
-  color: #e0f2fe;
-  text-decoration: none;
-  font-size: 12px;
-  line-height: 1;
+  border: 1px solid var(--sharpai-border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--sharpai-text);
+  font-size: 11px;
   cursor: pointer;
-  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+  text-decoration: none;
+  transition: all 0.15s ease;
 }
 
 .sharpai-option:hover,
-.sharpai-option:focus-visible,
 .sharpai-recovery button:hover,
-.sharpai-recovery button:focus-visible,
-.sharpai-recovery a:hover,
-.sharpai-recovery a:focus-visible {
-  transform: translateY(-1px);
-  background: rgba(56, 182, 255, 0.17);
-  border-color: rgba(56, 182, 255, 0.52);
+.sharpai-recovery a:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--sharpai-blue-light);
 }
 
-.sharpai-quote-offer {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
+/* Typing Indicator */
+.sharpai-message.is-typing-indicator .sharpai-bubble {
+  display: flex;
   align-items: center;
+  gap: 8px;
 }
 
-.sharpai-quote-offer strong {
-  color: #fff;
-  font-size: 12.5px;
+.sharpai-typing-text {
+  font-size: 11.5px;
+  color: var(--sharpai-muted);
 }
 
 .sharpai-typing {
   display: inline-flex;
-  gap: 4px;
-  align-items: center;
-  min-width: 36px;
+  gap: 3px;
 }
 
 .sharpai-typing span {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 999px;
-  background: #93d7ff;
-  animation: sharpaiTyping 1s ease-in-out infinite;
+  background: var(--sharpai-blue-light);
+  animation: sharpaiTyping 1.4s infinite both;
 }
 
-.sharpai-typing span:nth-child(2) { animation-delay: 0.14s; }
-.sharpai-typing span:nth-child(3) { animation-delay: 0.28s; }
+.sharpai-typing span:nth-child(2) { animation-delay: 0.2s; }
+.sharpai-typing span:nth-child(3) { animation-delay: 0.4s; }
 
+/* Composer Input Area: Glass rounded pill */
 .sharpai-composer {
-  padding: 11px;
+  padding: 0 16px;
+  height: 56px;
   display: flex;
-  gap: 9px;
-  align-items: flex-end;
-  border-top: 1px solid rgba(255, 255, 255, 0.09);
-  background: rgba(2, 8, 23, 0.34);
+  gap: 8px;
+  align-items: center;
+  border-top: 1px solid var(--sharpai-border);
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .sharpai-input-wrap {
   flex: 1;
-  display: block;
+  display: flex;
+  align-items: center;
 }
 
 .sharpai-input {
   width: 100%;
-  min-height: 42px;
-  max-height: 112px;
+  height: 36px;
   resize: none;
-  border-radius: 14px;
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  background: rgba(255, 255, 255, 0.075);
+  border-radius: 18px;
+  border: 1px solid var(--sharpai-border);
+  background: rgba(255, 255, 255, 0.05);
   color: #fff;
-  padding: 10px 12px;
-  line-height: 1.45;
-  font-size: 13.5px;
-  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
-}
-
-.sharpai-input::placeholder {
-  color: #92a4bb;
+  padding: 8px 14px;
+  font-size: 13px;
+  line-height: 1.4;
+  outline: none;
+  transition: all 0.2s ease;
 }
 
 .sharpai-input:focus {
-  border-color: rgba(56, 182, 255, 0.68);
-  box-shadow: 0 0 0 4px rgba(56, 182, 255, 0.11);
-  background: rgba(255, 255, 255, 0.095);
+  border-color: rgba(96, 165, 250, 0.68);
+  box-shadow: 0 0 12px rgba(96, 165, 250, 0.25);
+  background: rgba(255, 255, 255, 0.09);
 }
 
+/* Send Button: Circular Blue Gradient */
 .sharpai-send {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
   border: 0;
   display: grid;
   place-items: center;
-  flex: 0 0 auto;
   color: #fff;
   cursor: pointer;
-  background: linear-gradient(135deg, var(--sharpai-blue), var(--sharpai-blue-2));
-  box-shadow: 0 12px 24px rgba(29, 78, 216, 0.28);
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  background: var(--sharpai-blue);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
-.sharpai-send:hover,
-.sharpai-send:focus-visible {
-  transform: translateY(-1px);
+.sharpai-send:hover {
+  background: var(--sharpai-blue-light);
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.5);
 }
 
 .sharpai-send:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
-  opacity: 0.52;
   transform: none;
+  box-shadow: none;
 }
 
 .sharpai-send svg {
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
 }
 
+/* Lead Form Styling */
 .sharpai-lead-form {
   display: none;
-  padding: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.09);
-  background: rgba(2, 8, 23, 0.42);
+  padding: 12px 16px;
+  border-top: 1px solid var(--sharpai-border);
+  background: var(--sharpai-card);
 }
 
 .sharpai-lead-form.is-visible {
   display: block;
-  animation: sharpaiFadeUp 0.24s ease both;
 }
 
 .sharpai-form-heading {
-  display: grid;
-  gap: 3px;
-  margin-bottom: 9px;
+  margin-bottom: 8px;
 }
 
 .sharpai-form-heading strong {
   font-size: 13px;
+  color: #fff;
+  display: block;
 }
 
 .sharpai-form-heading span {
+  font-size: 11px;
   color: var(--sharpai-muted);
-  font-size: 11.5px;
-  line-height: 1.3;
 }
 
 .sharpai-form-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
 }
 
 .sharpai-field,
 .sharpai-textarea {
   width: 100%;
-  border-radius: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  background: rgba(255, 255, 255, 0.075);
+  border-radius: 8px;
+  border: 1px solid var(--sharpai-border);
+  background: var(--sharpai-bg);
   color: #fff;
-  padding: 9px 10px;
-  font-size: 13px;
-  line-height: 1.35;
-}
-
-.sharpai-field::placeholder,
-.sharpai-textarea::placeholder {
-  color: #93a6bd;
+  padding: 7px 9px;
+  font-size: 12px;
+  outline: none;
 }
 
 .sharpai-field:focus,
 .sharpai-textarea:focus {
-  border-color: rgba(56, 182, 255, 0.64);
-  box-shadow: 0 0 0 3px rgba(56, 182, 255, 0.1);
+  border-color: var(--sharpai-blue-light);
 }
 
 .sharpai-textarea {
   grid-column: 1 / -1;
-  min-height: 68px;
-  resize: vertical;
+  min-height: 54px;
+  resize: none;
 }
 
 .sharpai-form-actions {
   display: flex;
   gap: 8px;
-  margin-top: 9px;
+  margin-top: 8px;
 }
 
 .sharpai-form-actions button {
   flex: 1;
-  min-height: 37px;
-  border-radius: 12px;
+  height: 30px;
+  border-radius: 8px;
+  border: 0;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 700;
+  transition: all 0.15s ease;
 }
 
 .sharpai-submit-lead {
+  background: var(--sharpai-blue-gradient);
   color: #fff;
-  background: linear-gradient(135deg, var(--sharpai-blue), var(--sharpai-blue-2));
 }
 
 .sharpai-cancel-lead {
-  color: #dbeafe;
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--sharpai-text);
+  border: 1px solid var(--sharpai-border) !important;
 }
 
 .sharpai-sr-only {
@@ -691,128 +661,50 @@
   margin: -1px;
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
   border: 0;
 }
 
-@keyframes sharpaiPulse {
-  0% { opacity: 0.75; transform: scale(0.92); }
-  70% { opacity: 0; transform: scale(1.18); }
-  100% { opacity: 0; transform: scale(1.18); }
-}
-
-@keyframes sharpaiFadeUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
+/* Animations */
 @keyframes sharpaiTyping {
-  0%, 80%, 100% { opacity: 0.35; transform: translateY(0); }
-  40% { opacity: 1; transform: translateY(-3px); }
+  0% { transform: translateY(0px); opacity: 0.3; }
+  28% { transform: translateY(-4px); opacity: 1; }
+  70% { transform: translateY(0px); opacity: 0.3; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .sharpai-widget *,
-  .sharpai-widget *::before,
-  .sharpai-widget *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-@media (max-width: 767px) {
+/* Responsive / Mobile styles (Width: 92vw, Height: 82vh) */
+@media (max-width: 768px) {
   .sharpai-widget {
-    right: 12px;
-    bottom: 12px;
-    left: 12px;
-  }
-
-  .sharpai-floating-actions {
-    flex-direction: column-reverse;
-    align-items: flex-end;
-    gap: 10px;
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
   }
 
   .sharpai-launcher {
-    width: 58px;
-    height: 58px;
-  }
-
-  .sharpai-whatsapp {
-    height: 48px;
-    min-width: 48px;
-    padding: 0 13px;
-    font-size: 12px;
-  }
-
-  .sharpai-tooltip {
-    display: none;
+    width: 56px;
+    height: 56px;
   }
 
   .sharpai-window {
-    width: 100%;
-    right: 0;
-    left: 0;
-    bottom: 112px;
-    height: min(650px, calc(100vh - 136px));
-    border-radius: 20px;
+    width: 92vw;
+    height: 82vh;
+    left: 4vw;
+    right: 4vw;
+    bottom: 0;
+    border-radius: 20px 20px 0 0;
     transform-origin: bottom center;
   }
 
-  .sharpai-widget.is-chat-open .sharpai-whatsapp {
-    opacity: 0.96;
-  }
-
-  .sharpai-body {
-    padding: 14px 12px;
-  }
-
-  .sharpai-bubble,
-  .sharpai-message.is-user .sharpai-bubble {
-    max-width: 86%;
-  }
-
   .sharpai-actions {
-    grid-template-columns: 1fr;
-    margin-left: 36px;
-  }
-
-  .sharpai-action-panel,
-  .sharpai-recovery {
-    margin-left: 36px;
-  }
-
-  .sharpai-quote-offer {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 430px) {
-  .sharpai-header {
-    padding: 12px;
-  }
-
-  .sharpai-title {
-    font-size: 16px;
-  }
-
-  .sharpai-status {
-    font-size: 10.5px;
-  }
-
-  .sharpai-actions,
-  .sharpai-action-panel,
-  .sharpai-recovery {
+    grid-template-columns: repeat(2, 1fr);
     margin-left: 0;
   }
 
-  .sharpai-mini-avatar {
-    display: none;
+  .sharpai-chips-container {
+    margin-left: 0;
   }
 
-  .sharpai-form-grid {
-    grid-template-columns: 1fr;
+  .sharpai-action-panel,
+  .sharpai-recovery {
+    margin-left: 0;
   }
 }

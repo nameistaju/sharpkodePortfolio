@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const compression = require("compression");
 const rateLimit = require("express-rate-limit");
 const { getAllowedOrigins, getEnv, hasEnv } = require("./config");
 
@@ -13,6 +14,7 @@ const nodeEnv = getEnv("NODE_ENV", "development");
 const allowedOrigins = getAllowedOrigins();
 
 app.disable("x-powered-by");
+app.use(compression());
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(express.json({ limit: "32kb" }));
 app.use(cors({
