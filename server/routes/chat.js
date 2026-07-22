@@ -46,6 +46,7 @@ function isLeadIntent(message) {
 }
 
 router.post("/chat", async (req, res) => {
+  console.log("CHAT ROUTE HIT");
   // Validate request body
   console.log("Incoming request:", req.body);
 
