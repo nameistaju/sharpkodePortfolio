@@ -1,53 +1,69 @@
 const express = require("express");
-const { answerQuestion, retrieve, ensureVectorStore } = require("../services/rag");
+const { retrieve, ensureVectorStore } = require("../services/rag");
 const { generateAnswer, FALLBACK_MESSAGE } = require("../services/nvidia");
+const { classifyIntent } = require("../services/intent");
 const { appendJson, cleanString, readJson } = require("../services/storage");
 
 const router = express.Router();
 
-const responseCache = new Map();
-responseCache.set("services", {
-  answer: "SharpKode offers a full suite of digital solutions:\n\n• **Website Development:** High-converting business sites, e-commerce, and portfolios.\n• **Custom Software & ERP:** Custom CRMs, admin dashboards, and internal business tools.\n• **AI Automation:** Intelligent chatbots, RAG systems, and workflow automation.\n• **Mobile App Development:** Native iOS/Android and Flutter apps.\n• **Digital Marketing & SEO:** Search Engine Optimization, Meta/Google Ads, and lead generation.",
-  leadForm: false
-});
+// ─── Static response cache ──────────────────────────────────────────────────
+// Only used for purely factual, static information that does not require
+// context-aware reasoning (e.g. contact details, company identity, team).
+// Dynamic topics (pricing, SEO, AI, etc.) always go through RAG + NVIDIA.
 
-responseCache.set("pricing", {
-  answer: "We offer clear, transparent pricing packages:\n\n• **Basic Package (Rs 9,999/mo):** Basic website, 1 video, 3 posters, monthly maintenance.\n• **Standard Package (Rs 19,999/mo):** Standard website, SEO, 2 videos, 5 posters, Google Ads setup.\n• **Advanced Package (Rs 29,999/mo):** Dynamic website, SEO, weekly influencer promotion, 3 videos, everyday posters, cinema ads.\n\nAll packages can be customized. Contact us or book a call for a tailored quote.",
-  leadForm: false
-});
+const STATIC_CACHE = new Map([
+  ["greeting", {
+    answer: "Hey! I'm SharpAI, your business consultant here at SharpKode. I can help with websites, apps, AI solutions, marketing, pricing, or anything else tech-related. What are you working on?",
+    leadForm: false
+  }],
+  ["thanks", {
+    answer: "Happy to help. Let me know if there's anything else you'd like to explore.",
+    leadForm: false
+  }],
+  ["goodbye", {
+    answer: "Take care! Reach us anytime at info@sharpkode.com or on WhatsApp if something comes up.",
+    leadForm: false
+  }],
+  ["contact", {
+    answer: "You can reach the team through any of these:\n\n• **WhatsApp:** [Chat Now](https://wa.me/917799343436)\n• **Phone:** +91 77993 43436\n• **Email:** info@sharpkode.com\n• **Office:** Visakhapatnam, India\n\nOr fill in the quick form below and someone will get back to you.",
+    leadForm: true
+  }],
+  ["company", {
+    answer: "SharpKode is a technology and digital marketing company based in Visakhapatnam. We build websites, custom software, mobile apps, AI solutions, ERP systems, and run performance marketing campaigns for businesses across industries.",
+    leadForm: false
+  }],
+  ["team", {
+    answer: "SharpKode has a cross-functional team of developers, designers, and digital marketers who specialize in web, software, mobile, AI, and growth marketing. Want to know more about a specific area?",
+    leadForm: false
+  }],
+  ["portfolio", {
+    answer: "We've worked with businesses in real estate, interior design, wellness, hospitality, retail, and more. You can browse the full portfolio at [sharpkode.com/portfolio.html](./portfolio.html) — or ask me about a specific industry and I'll pull up relevant examples.",
+    leadForm: false
+  }],
+  ["technologies", {
+    answer: "Our core stack covers both sides of the build:\n\n• **Frontend:** React, Next.js, Tailwind CSS, Flutter\n• **Backend:** Node.js, Express, Python, Laravel, Django\n• **Databases:** MySQL, PostgreSQL, MongoDB\n• **Cloud:** AWS, Google Cloud, Vercel, Render\n• **AI/ML:** LLMs, RAG, automation pipelines\n\nWe match the stack to the project, not the other way around.",
+    leadForm: false
+  }],
+  ["hosting", {
+    answer: "We deploy on AWS, Google Cloud, Vercel, or Render depending on the project's scale and budget. All deployments include SSL, CDN, automated backups, and CI/CD pipelines. Hosting and infrastructure management can be included in your package.",
+    leadForm: false
+  }],
+  ["maintenance", {
+    answer: "Yes — all our projects come with post-launch support. Depending on your package, this covers bug fixes, content updates, performance monitoring, and feature additions. Maintenance plans start from Rs 9,999/month. Want specifics for your project type?",
+    leadForm: false
+  }]
+]);
 
-responseCache.set("contact", {
-  answer: "You can reach the SharpKode team instantly:\n\n• **WhatsApp:** [Chat Now](https://wa.me/917799343436)\n• **Phone:** +91 77993 43436\n• **Email:** info@sharpkode.com\n• **Office:** Visakhapatnam, India.\n\nOr simply fill out our contact form right here in the chat!",
-  leadForm: true
-});
-
-responseCache.set("portfolio", {
-  answer: "Explore some of our featured client work:\n\n• **Zeta Real Estate Portal:** High-converting real estate search & listing platform (Next.js/Tailwind).\n• **Mammu Interior Designers:** Immersive showcase and booking portal for premium interiors (React/Figma).\n• **Aura Spa & Wellness:** Sleek appointment scheduling and package booking system.\n\nVisit our [Portfolio Page](./portfolio.html) to see all projects.",
-  leadForm: false
-});
-
-responseCache.set("company", {
-  answer: "SharpKode Tech Solutions is a professional software development and digital solutions company. We specialize in websites, custom software, AI integrations, mobile apps, and performance marketing to help businesses automate and scale.",
-  leadForm: false
-});
-
-function getCachedResponse(message) {
-  const normalized = String(message || "").toLowerCase().trim();
-  if (/^(services|what do you do|our services|what services)\b/.test(normalized)) return responseCache.get("services");
-  if (/^(price|pricing|cost|packages|how much|what package)\b/.test(normalized)) return responseCache.get("pricing");
-  if (/^(contact|phone|email|whatsapp|address|office|call us)\b/.test(normalized)) return responseCache.get("contact");
-  if (/^(portfolio|projects|case studies|our work|featured projects)\b/.test(normalized)) return responseCache.get("portfolio");
-  if (/^(company|who are you|about sharpkode|about us|sharpkode)\b/.test(normalized)) return responseCache.get("company");
-  return null;
-}
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function isLeadIntent(message) {
-  return /\b(quote|quotation|estimate|proposal|consultation|meeting|appointment|call|contact|talk\s+to\s+(a\s+)?human|talk\s+to\s+(the\s+)?team|hire|start\s+(a\s+)?project)\b/i.test(message);
+  return /\b(quote|quotation|estimate|proposal|consultation|meeting|appointment|call|book|contact|talk\s+to\s+(a\s+)?human|talk\s+to\s+(the\s+)?team|hire|start\s+(a\s+)?project|get started)\b/i.test(message);
 }
+
+// ─── POST /api/chat ───────────────────────────────────────────────────────────
 
 router.post("/chat", async (req, res) => {
   console.log("CHAT ROUTE HIT");
-  // Validate request body
   console.log("Incoming request:", req.body);
 
   const message = cleanString(req.body?.message, 1000);
@@ -62,66 +78,65 @@ router.post("/chat", async (req, res) => {
   const timestamp = new Date().toISOString();
   console.info("[SharpAI:Route] Request received by Express", { sessionId, length: message.length });
 
-  // 1. Instant Cache Check
-  const cached = getCachedResponse(message);
-  if (cached) {
-    console.info("[SharpAI:Route] Instant cache hit", { message });
-    res.setHeader("Content-Type", "application/json");
-    res.setHeader("Transfer-Encoding", "chunked");
-    res.write(JSON.stringify({ type: "chunk", text: cached.answer }) + "\n");
-    res.write(JSON.stringify({ type: "meta", leadForm: cached.leadForm, contexts: [] }) + "\n");
-    res.end();
-    return;
+  // 1. Classify intent (zero-latency)
+  const intent = classifyIntent(message);
+  console.info("[SharpAI:Intent]", { intent: intent.intent, style: intent.style, chunkLimit: intent.chunkLimit, useCache: intent.useCache });
+
+  // 2. Static cache hit — return immediately, no RAG, no NVIDIA
+  if (intent.useCache) {
+    const cached = STATIC_CACHE.get(intent.intent);
+    if (cached) {
+      console.info("[SharpAI:Route] Static cache hit", { intent: intent.intent });
+      const leadForm = isLeadIntent(message) || cached.leadForm;
+      res.json({ success: true, response: cached.answer, leadForm, contexts: [] });
+      return;
+    }
   }
 
-  // 2. Performance Tracking Variables
+  // 3. Dynamic RAG + NVIDIA path
   const startTotal = Date.now();
   let retrievalTime = 0;
-  let promptTime = 0;
   let nvidiaTime = 0;
-
-
-
   let contexts = [];
   let history = [];
   let answerAccumulator = "";
 
   try {
-    // Validate environment variables
     const apiKey = process.env.NVIDIA_API_KEY;
-    if (!apiKey) {
-      throw new Error("NVIDIA_API_KEY environment variable is not defined!");
-    }
+    if (!apiKey) throw new Error("NVIDIA_API_KEY environment variable is not defined!");
 
-    // 3. Parallel retrieval and history loading
+    // 3a. Parallel retrieval + history load
     const startRetrieval = Date.now();
-    const store = await ensureVectorStore();
-    const vectorStoreLength = store?.entries?.length || 0;
-    console.log("Vector store loaded:", vectorStoreLength);
+    await ensureVectorStore();
 
-    const retrievalPromise = retrieve(message);
-    const historyPromise = readJson("conversation-logs.json", []);
+    const [retrievedContexts, allLogs] = await Promise.all([
+      retrieve(message, intent.chunkLimit),
+      readJson("conversation-logs.json", [])
+    ]);
 
-    // Wait concurrently
-    const [retrievedContexts, allLogs] = await Promise.all([retrievalPromise, historyPromise]);
     contexts = retrievedContexts;
     retrievalTime = Date.now() - startRetrieval;
     console.log("Retrieved chunks:", contexts.length);
 
-    const startPrompt = Date.now();
+    // 3b. Build conversation history for this session
     history = allLogs
       .filter((log) => log.sessionId === sessionId)
       .map((log) => ({ role: log.role, content: log.content }));
-    promptTime = Date.now() - startPrompt;
+
     console.log("Prompt created");
 
-    // 4. Generate response from NVIDIA NIM API
+    // 3c. Call NVIDIA NIM with intent-aware style and token limit
     const startNvidia = Date.now();
     console.log("Calling NVIDIA NIM...");
-    const answer = await generateAnswer({ question: message, contexts, history });
+    const answer = await generateAnswer({
+      question: message,
+      contexts,
+      history,
+      style: intent.style,
+      maxTokens: intent.maxTokens
+    });
     answerAccumulator = answer;
     nvidiaTime = Date.now() - startNvidia;
-    console.log("NVIDIA response:", answerAccumulator);
 
     const leadForm = isLeadIntent(message);
     res.json({
@@ -132,37 +147,25 @@ router.post("/chat", async (req, res) => {
     });
 
     const totalTime = Date.now() - startTotal;
+    console.info(`\nPerformance Stats:\nIntent:    ${intent.intent} (${intent.style})\nRetrieval: ${retrievalTime}ms\nNVIDIA:    ${nvidiaTime}ms\nTotal:     ${totalTime}ms\n`);
 
-    // 14. Performance Monitoring Logs
-    console.info(`\nPerformance Stats:
-Retrieval: ${retrievalTime}ms
-Prompt:    ${promptTime}ms
-NVIDIA:    ${nvidiaTime}ms
-Total:     ${totalTime}ms\n`);
-
-    // Async log saving (do not block the response)
+    // Async log saving (non-blocking)
     appendJson("chat-history.json", {
-      sessionId,
-      message,
-      answer: answerAccumulator,
+      sessionId, message, answer: answerAccumulator,
+      intent: intent.intent, style: intent.style,
       contexts: contexts.map(({ source, score }) => ({ source, score })),
       timestamp
     }).catch(console.error);
 
     appendJson("conversation-logs.json", {
-      sessionId,
-      role: "user",
-      content: message,
-      timestamp
-    }).then(() => {
+      sessionId, role: "user", content: message, timestamp
+    }).then(() =>
       appendJson("conversation-logs.json", {
-        sessionId,
-        role: "assistant",
-        content: answerAccumulator,
+        sessionId, role: "assistant", content: answerAccumulator,
         contexts: contexts.map(({ source, score }) => ({ source, score })),
         timestamp: new Date().toISOString()
-      }).catch(console.error);
-    }).catch(console.error);
+      }).catch(console.error)
+    ).catch(console.error);
 
   } catch (error) {
     console.error("CHAT ERROR:", error);
@@ -177,27 +180,29 @@ Total:     ${totalTime}ms\n`);
     }
 
     appendJson("chat-history.json", {
-      sessionId,
-      message,
-      answer: FALLBACK_MESSAGE,
-      error: error.message,
-      timestamp
+      sessionId, message, answer: FALLBACK_MESSAGE,
+      error: error.message, timestamp
     }).catch(console.error);
   }
 });
 
+// ─── POST /api/leads ──────────────────────────────────────────────────────────
+
+function isEmail(str) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str); }
+function isPhone(str) { return /^[+\d\s\-().]{7,20}$/.test(str); }
+
 router.post("/leads", async (req, res) => {
   const lead = {
     sessionId: cleanString(req.body?.sessionId, 120) || "anonymous",
-    name: cleanString(req.body?.name, 120),
-    phone: cleanString(req.body?.phone, 40),
-    email: cleanString(req.body?.email, 160),
-    business: cleanString(req.body?.business, 160),
-    industry: cleanString(req.body?.industry, 120),
-    budget: cleanString(req.body?.budget, 80),
-    timeline: cleanString(req.body?.timeline, 120),
+    name:             cleanString(req.body?.name, 120),
+    phone:            cleanString(req.body?.phone, 40),
+    email:            cleanString(req.body?.email, 160),
+    business:         cleanString(req.body?.business, 160),
+    industry:         cleanString(req.body?.industry, 120),
+    budget:           cleanString(req.body?.budget, 80),
+    timeline:         cleanString(req.body?.timeline, 120),
     requiredServices: cleanString(req.body?.requiredServices, 300),
-    message: cleanString(req.body?.message, 1000),
+    message:          cleanString(req.body?.message, 1000),
     timestamp: new Date().toISOString()
   };
 
@@ -205,12 +210,10 @@ router.post("/leads", async (req, res) => {
     res.status(400).json({ error: "Name, phone, email, and message are required." });
     return;
   }
-
   if (!isEmail(lead.email)) {
     res.status(400).json({ error: "Please enter a valid email address." });
     return;
   }
-
   if (!isPhone(lead.phone)) {
     res.status(400).json({ error: "Please enter a valid phone number." });
     return;
@@ -218,6 +221,7 @@ router.post("/leads", async (req, res) => {
 
   console.info("[SharpAI:Route] Lead received", { sessionId: lead.sessionId, email: lead.email, hasPhone: Boolean(lead.phone) });
   await appendJson("leads.json", lead);
+
   const summary = [
     "Thanks. Your project details have been captured.",
     "",
@@ -235,6 +239,8 @@ router.post("/leads", async (req, res) => {
 
   res.json({ ok: true, summary });
 });
+
+// ─── Admin routes ─────────────────────────────────────────────────────────────
 
 router.get("/admin/history", async (_req, res) => {
   res.json(await readJson("chat-history.json", []));

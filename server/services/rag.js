@@ -91,7 +91,10 @@ function expandQuery(question) {
   return [question, ...expansions].filter(Boolean).join("\n");
 }
 
-async function retrieve(question, limit = 4) {
+async function retrieve(question, limit = 3) {
+  // Callers may request 0 chunks (e.g. greetings) — short-circuit immediately
+  if (limit === 0) return [];
+
   logStep("Loading relevant knowledge");
   if (!vectorCache) await ensureVectorStore();
   if (!vectorCache?.entries?.length) {
