@@ -162,8 +162,9 @@ Use retrieved knowledge as source of truth for services, pricing, process, and c
 
   let buffer = "";
   let yieldedLength = 0;
+  const decoder = new TextDecoder("utf-8");
   for await (const byteChunk of response.body) {
-    buffer += byteChunk.toString("utf8");
+    buffer += typeof byteChunk === "string" ? byteChunk : decoder.decode(byteChunk, { stream: true });
     const regex = /"text"\s*:\s*"((?:[^"\\]|\\.)*)"/g;
     let match;
     let fullText = "";

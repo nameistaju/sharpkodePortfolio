@@ -1,5 +1,5 @@
 const express = require("express");
-const { answerQuestion, retrieve } = require("../services/rag");
+const { answerQuestion, retrieve, ensureVectorStore } = require("../services/rag");
 const { generateAnswerStream, FALLBACK_MESSAGE } = require("../services/gemini");
 const { appendJson, cleanString, readJson } = require("../services/storage");
 
@@ -46,6 +46,9 @@ function isLeadIntent(message) {
 }
 
 router.post("/chat", async (req, res) => {
+  // Validate request body
+  console.log("Incoming request:", req.body);
+
   const message = cleanString(req.body?.message, 1000);
   const sessionId = cleanString(req.body?.sessionId, 120) || "anonymous";
 
@@ -85,8 +88,18 @@ router.post("/chat", async (req, res) => {
   let answerAccumulator = "";
 
   try {
+    // Validate environment variables
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY environment variable is not defined!");
+    }
+
     // 3. Parallel retrieval and history loading
     const startRetrieval = Date.now();
+    const store = await ensureVectorStore();
+    const vectorStoreLength = store?.entries?.length || 0;
+    console.log("Vector store loaded:", vectorStoreLength);
+
     const retrievalPromise = retrieve(message);
     const historyPromise = readJson("conversation-logs.json", []);
 
@@ -94,15 +107,18 @@ router.post("/chat", async (req, res) => {
     const [retrievedContexts, allLogs] = await Promise.all([retrievalPromise, historyPromise]);
     contexts = retrievedContexts;
     retrievalTime = Date.now() - startRetrieval;
+    console.log("Retrieved chunks:", contexts.length);
 
     const startPrompt = Date.now();
     history = allLogs
       .filter((log) => log.sessionId === sessionId)
       .map((log) => ({ role: log.role, content: log.content }));
     promptTime = Date.now() - startPrompt;
+    console.log("Prompt created");
 
     // 4. Stream from Gemini API
     const startGemini = Date.now();
+    console.log("Calling Gemini...");
     const stream = generateAnswerStream({ question: message, contexts, history });
 
     for await (const chunk of stream) {
@@ -110,6 +126,7 @@ router.post("/chat", async (req, res) => {
       res.write(JSON.stringify({ type: "chunk", text: chunk }) + "\n");
     }
     geminiTime = Date.now() - startGemini;
+    console.log("Gemini response:", answerAccumulator);
 
     const leadForm = isLeadIntent(message);
     res.write(JSON.stringify({
@@ -153,13 +170,24 @@ Total:     ${totalTime}ms\n`);
     }).catch(console.error);
 
   } catch (error) {
-    console.error("[SharpAI:Route] Chat flow failed", { sessionId, reason: error.message });
-    res.write(JSON.stringify({
-      type: "chunk",
-      text: "I'm having trouble answering that right now. Would you like to try again, contact us on WhatsApp, or talk to our team?"
-    }) + "\n");
-    res.write(JSON.stringify({ type: "meta", leadForm: false, contexts: [], error: error.message }) + "\n");
-    res.end();
+    console.error("CHAT ERROR:", error);
+    console.error(error.stack);
+
+    if (!res.headersSent) {
+      res.removeHeader("Transfer-Encoding");
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        stack: process.env.NODE_ENV !== "production" ? error.stack : undefined
+      });
+    } else {
+      res.write(JSON.stringify({
+        type: "chunk",
+        text: `CHAT ERROR: ${error.message}`
+      }) + "\n");
+      res.write(JSON.stringify({ type: "meta", leadForm: false, contexts: [], error: error.message }) + "\n");
+      res.end();
+    }
 
     appendJson("chat-history.json", {
       sessionId,
