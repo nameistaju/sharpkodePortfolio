@@ -14,7 +14,11 @@ function getEnv(name, fallback) {
 }
 
 function hasEnv(name) {
-  return Boolean(process.env[name] && process.env[name] !== "your_google_gemini_api_key_here");
+  return Boolean(
+    process.env[name] &&
+    process.env[name] !== "your_google_gemini_api_key_here" &&
+    process.env[name] !== "your_nvidia_api_key_here"
+  );
 }
 
 function requireEnv(name) {

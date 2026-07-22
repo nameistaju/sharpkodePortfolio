@@ -50,7 +50,7 @@ app.use((error, _req, res, _next) => {
 
 async function start() {
   console.log(`✓ Environment ${nodeEnv.charAt(0).toUpperCase() + nodeEnv.slice(1)}`);
-  console.log(hasEnv("GEMINI_API_KEY") ? "✓ Gemini Loaded" : "⚠ Gemini: API key missing");
+  console.log(hasEnv("NVIDIA_API_KEY") ? "✓ NVIDIA Loaded" : "⚠ NVIDIA: API key missing");
   
   try {
     const store = await ensureVectorStore();

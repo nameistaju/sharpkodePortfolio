@@ -1,6 +1,6 @@
 const express = require("express");
 const { answerQuestion, retrieve, ensureVectorStore } = require("../services/rag");
-const { generateAnswerStream, FALLBACK_MESSAGE } = require("../services/gemini");
+const { generateAnswerStream, FALLBACK_MESSAGE } = require("../services/nvidia");
 const { appendJson, cleanString, readJson } = require("../services/storage");
 
 const router = express.Router();
@@ -78,7 +78,7 @@ router.post("/chat", async (req, res) => {
   const startTotal = Date.now();
   let retrievalTime = 0;
   let promptTime = 0;
-  let geminiTime = 0;
+  let nvidiaTime = 0;
 
   // Set streaming headers
   res.setHeader("Content-Type", "application/json");
@@ -90,9 +90,9 @@ router.post("/chat", async (req, res) => {
 
   try {
     // Validate environment variables
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.NVIDIA_API_KEY;
     if (!apiKey) {
-      throw new Error("GEMINI_API_KEY environment variable is not defined!");
+      throw new Error("NVIDIA_API_KEY environment variable is not defined!");
     }
 
     // 3. Parallel retrieval and history loading
@@ -117,17 +117,17 @@ router.post("/chat", async (req, res) => {
     promptTime = Date.now() - startPrompt;
     console.log("Prompt created");
 
-    // 4. Stream from Gemini API
-    const startGemini = Date.now();
-    console.log("Calling Gemini...");
+    // 4. Stream from NVIDIA NIM API
+    const startNvidia = Date.now();
+    console.log("Calling NVIDIA NIM...");
     const stream = generateAnswerStream({ question: message, contexts, history });
-
+ 
     for await (const chunk of stream) {
       answerAccumulator += chunk;
       res.write(JSON.stringify({ type: "chunk", text: chunk }) + "\n");
     }
-    geminiTime = Date.now() - startGemini;
-    console.log("Gemini response:", answerAccumulator);
+    nvidiaTime = Date.now() - startNvidia;
+    console.log("NVIDIA response:", answerAccumulator);
 
     const leadForm = isLeadIntent(message);
     res.write(JSON.stringify({
@@ -143,7 +143,7 @@ router.post("/chat", async (req, res) => {
     console.info(`\nPerformance Stats:
 Retrieval: ${retrievalTime}ms
 Prompt:    ${promptTime}ms
-Gemini:    ${geminiTime}ms
+NVIDIA:    ${nvidiaTime}ms
 Total:     ${totalTime}ms\n`);
 
     // Async log saving (do not block the response)

@@ -4,7 +4,7 @@ This repository contains the complete frontend and backend for SharpKode Tech So
 
 ## Architecture
 - **Frontend:** Static HTML, Vanilla CSS, JS (Hosted on Vercel)
-- **Backend:** Node.js Express API with Gemini RAG Chatbot (Hosted on Render)
+- **Backend:** Node.js Express API with NVIDIA Build (NVIDIA NIM) RAG Chatbot (Hosted on Render)
 - **Domain:** Configured via Hostinger DNS
 
 ## Deployment Guide
@@ -14,7 +14,9 @@ This repository contains the complete frontend and backend for SharpKode Tech So
 2. Connect this repository and set the Root Directory to `server`.
 3. Render will automatically detect the `render.yaml` configuration.
 4. Go to the service **Environment** settings and add:
-   - `GEMINI_API_KEY`: Your Google Gemini API Key
+   - `GEMINI_API_KEY`: Your Google Gemini API Key (used for embedding generation)
+   - `NVIDIA_API_KEY`: Your NVIDIA Build API Key
+   - `NVIDIA_MODEL`: `meta/llama-3.3-70b-instruct`
 5. Deploy the service.
 6. Note the provided `.onrender.com` URL.
 

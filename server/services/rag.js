@@ -2,7 +2,7 @@ require("../config");
 const fs = require("fs/promises");
 const path = require("path");
 const { getEnv } = require("../config");
-const { generateAnswer, FALLBACK_MESSAGE } = require("./gemini");
+const { generateAnswer, FALLBACK_MESSAGE } = require("./nvidia");
 const { createEmbedding } = require("./embedding");
 const { loadKnowledgeChunks } = require("./knowledgeLoader");
 
