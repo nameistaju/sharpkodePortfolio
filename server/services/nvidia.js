@@ -89,68 +89,29 @@ async function generateAnswer({ question, contexts, history }) {
 
   console.info("[SharpAI:NVIDIA] Calling NVIDIA NIM", { model, contextCount: contexts?.length || 0 });
 
-  console.time("NVIDIA TOTAL");
-  let response;
-  try {
-    console.log("1. Before fetch");
-    response = await fetch(`${API_ROOT}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model,
-        messages,
-        temperature: 0.3,
-        max_tokens: 1024,
-        stream: false
-      })
-    });
-    console.log("2. Fetch returned");
-  } catch (error) {
-    console.error("FAILED AT STEP 1 (fetch)");
-    console.error(error);
-    console.timeEnd("NVIDIA TOTAL");
-    throw error;
-  }
-
-  console.log("Status:", response.status);
+  const response = await fetch(`${API_ROOT}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      temperature: 0.3,
+      max_tokens: 1024,
+      stream: false
+    })
+  });
 
   if (!response.ok) {
-    let errorText;
-    try {
-      console.log("2a. Before response.text()");
-      errorText = await response.text();
-      console.log("2b. text() returned");
-    } catch (error) {
-      console.error("FAILED AT STEP 2a (response.text)");
-      console.error(error);
-      console.timeEnd("NVIDIA TOTAL");
-      throw error;
-    }
+    const errorText = await response.text();
     console.error("NVIDIA ERROR RESPONSE:", errorText);
-    console.timeEnd("NVIDIA TOTAL");
     throw new Error(`NVIDIA API error ${response.status}: ${errorText}`);
   }
 
-  console.log("3. Before response.json()");
-  let data;
-  try {
-    data = await response.json();
-    console.log("4. JSON parsed");
-  } catch (error) {
-    console.error("FAILED AT STEP 3 (response.json)");
-    console.error(error);
-    console.timeEnd("NVIDIA TOTAL");
-    throw error;
-  }
-
-  console.log("5. Before extracting answer");
+  const data = await response.json();
   const answer = data.choices?.[0]?.message?.content;
-  console.log("6. Answer extracted");
-
-  console.timeEnd("NVIDIA TOTAL");
   return answer || FALLBACK_MESSAGE;
 }
 

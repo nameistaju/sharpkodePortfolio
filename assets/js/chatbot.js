@@ -235,7 +235,6 @@
     }
 
     const submitChat = (event) => {
-      console.log("Send clicked");
       event?.preventDefault();
       event?.stopPropagation();
       if (typeof event?.stopImmediatePropagation === "function") event.stopImmediatePropagation();
@@ -244,7 +243,6 @@
       const message = input.value.trim();
       if (!message || state.busy) return;
       
-      console.log("Message submitted");
       input.value = "";
       input.style.height = "auto";
       sendMessage(message);
@@ -527,9 +525,6 @@
   }
 
   async function sendMessage(message, options = {}) {
-    console.log("Sending request...");
-    console.log(API_BASE_URL);
-
     setOpen(true);
     state.lastMessage = message;
     updateConversationIntelligence(message);
@@ -550,11 +545,9 @@
       });
 
       const data = await response.json();
-      console.log("Response received");
       typing?.remove();
 
       if (data.response) {
-        console.log("Rendering assistant response");
         addMessage("bot", data.response);
       }
 
@@ -659,7 +652,4 @@
   } else {
     createWidget();
   }
-  window.addEventListener("beforeunload", () => {
-    console.trace("PAGE IS RELOADING");
-  });
 })();
