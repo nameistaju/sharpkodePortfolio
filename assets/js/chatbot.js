@@ -1,5 +1,6 @@
 (() => {
   const API_BASE = resolveApiBase();
+  const API_BASE_URL = API_BASE;
   const WHATSAPP_URL = "https://wa.me/917799343436?text=Hi%20SharpKode%20Team%2C%20I%20found%20your%20website%20and%20would%20like%20to%20discuss%20my%20project.";
   const CONTACT_EMAIL = "info@sharpkode.com";
   const CONTACT_PHONE = "+917799343436";
@@ -148,9 +149,11 @@
     document.body.appendChild(widget);
 
     const launcher = widget.querySelector("[data-sharpai-launcher]");
-    launcher.addEventListener("click", () => {
-      setOpen(true);
-    });
+    if (launcher) {
+      launcher.addEventListener("click", () => {
+        setOpen(true);
+      });
+    }
 
     // ESC closes chatbot
     document.addEventListener("keydown", (e) => {
@@ -216,7 +219,7 @@
             <span class="sharpai-sr-only">Message SharpAI</span>
             <textarea class="sharpai-input" data-sharpai-input rows="1" placeholder="Ask about your project..."></textarea>
           </label>
-          <button class="sharpai-send" type="button" aria-label="Send message">${icons.send}</button>
+          <button class="sharpai-send" type="submit" aria-label="Send message">${icons.send}</button>
         </form>
       </section>
     `;
@@ -237,40 +240,53 @@
     const leadForm = widget.querySelector("[data-sharpai-lead-form]");
     const cancelLead = widget.querySelector("[data-sharpai-cancel-lead]");
 
-    closeBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      setOpen(false);
-    });
+    if (closeBtn) {
+      closeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        setOpen(false);
+      });
+    }
 
     const submitChat = (event) => {
+      console.log("Send clicked");
       event?.preventDefault();
       event?.stopPropagation();
       if (typeof event?.stopImmediatePropagation === "function") event.stopImmediatePropagation();
+      
+      if (!input) return;
       const message = input.value.trim();
       if (!message || state.busy) return;
+      
       input.value = "";
       input.style.height = "auto";
       sendMessage(message);
     };
 
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      submitChat(event);
-    });
+    if (form) {
+      form.addEventListener("submit", submitChat);
+    }
 
-    widget.querySelector(".sharpai-send")?.addEventListener("click", submitChat);
+    const sendBtn = widget.querySelector(".sharpai-send");
+    if (sendBtn) {
+      sendBtn.addEventListener("click", submitChat);
+    }
 
-    input.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" && !event.shiftKey) {
-        event.preventDefault();
-        event.stopPropagation();
-        submitChat(event);
-      }
-    });
+    if (input) {
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+          event.preventDefault();
+          event.stopPropagation();
+          submitChat(event);
+        }
+      });
+    }
 
-    leadForm.addEventListener("submit", submitLead);
-    cancelLead.addEventListener("click", hideLeadForm);
+    if (leadForm) {
+      leadForm.addEventListener("submit", submitLead);
+    }
+    if (cancelLead) {
+      cancelLead.addEventListener("click", hideLeadForm);
+    }
 
     // Pull down to close sheet gesture tracking on Mobile
     let touchStartY = 0;
@@ -330,7 +346,8 @@
 
   function setMinimized(minimized) {
     state.minimized = minimized;
-    document.querySelector(".sharpai-window")?.classList.toggle("is-minimized", minimized);
+    const windowEl = document.querySelector(".sharpai-window");
+    if (windowEl) windowEl.classList.toggle("is-minimized", minimized);
   }
 
   function getBody() {
@@ -512,14 +529,19 @@
   }
 
   function setBusy(busy) {
-    const send = document.querySelector(".sharpai-send");
-    const input = document.querySelector("[data-sharpai-input]");
+    const widget = document.querySelector(".sharpai-widget");
+    if (!widget) return;
+    const send = widget.querySelector(".sharpai-send");
+    const input = widget.querySelector("[data-sharpai-input]");
     state.busy = busy;
     if (send) send.disabled = busy;
     if (input) input.setAttribute("aria-busy", String(busy));
   }
 
   async function sendMessage(message, options = {}) {
+    console.log("Sending request...");
+    console.log(API_BASE_URL);
+
     setOpen(true);
     state.lastMessage = message;
     updateConversationIntelligence(message);
@@ -642,7 +664,8 @@
   function hideLeadForm() {
     state.dismissedLeadAt = Date.now();
     state.dismissedLeadMessageCount = state.userMessageCount;
-    document.querySelector("[data-sharpai-lead-form]")?.classList.remove("is-visible");
+    const form = document.querySelector("[data-sharpai-lead-form]");
+    if (form) form.classList.remove("is-visible");
   }
 
   async function submitLead(event) {
