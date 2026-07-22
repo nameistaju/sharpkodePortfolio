@@ -150,7 +150,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     </script>
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="./favicon.ico" type="image/x-icon" sizes="any">
+    <link rel="icon" href="./assets/images/logo.a0cdff66.png" type="image/png">
+    <link rel="apple-touch-icon" href="./assets/images/logo.a0cdff66.png">
     <style id="antigravity-scroll-lock-style">
       html:root body.antigravity-scroll-lock {
         overflow: hidden !important;
@@ -418,6 +419,26 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W4B58XF9"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
+    <!-- SharpKode Logo Loader -->
+    <iframe src="./logo-loader.html" id="sharpkode-loader-frame" style="position:fixed; top:0; left:0; width:100%; height:100%; border:none; z-index:2147483647; background:#0a0e16; transition:opacity 0.6s ease; pointer-events:none;"></iframe>
+    <script>
+      (function() {
+        function hideLoader() {
+          var loader = document.getElementById('sharpkode-loader-frame');
+          if (loader) {
+            loader.style.opacity = '0';
+            setTimeout(function() {
+              if (loader.parentNode) {
+                loader.remove();
+              }
+            }, 600);
+          }
+        }
+        window.addEventListener('load', hideLoader);
+        setTimeout(hideLoader, 4000); // safety fallback
+      })();
+    </script>
+
     <header class="relative header text-white">
       <div class="w-full absolute left-0 z-50 page-header">
         <div class="container flex justify-between items-center lg:gap-10 gap-6 py-7 lg:py-0">
