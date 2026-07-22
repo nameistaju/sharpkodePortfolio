@@ -13,12 +13,26 @@
           "value": "nosniff"
         },
         {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
           "key": "X-XSS-Protection",
           "value": "1; mode=block"
+        }
+      ]
+    },
+    {
+      "source": "/logo-loader.html",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        }
+      ]
+    },
+    {
+      "source": "/(?!logo-loader)(.*).html",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
         }
       ]
     },
