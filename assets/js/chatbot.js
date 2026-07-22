@@ -548,55 +548,17 @@
         body: JSON.stringify({ message, sessionId: state.sessionId })
       });
 
-      if (!response.ok) {
-        typing?.remove();
-        addRecoverableError();
-        return;
+      const data = await response.json();
+      typing?.remove();
+
+      if (data.response) {
+        addMessage("bot", data.response);
       }
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-      let buffer = "";
-      let botMsg = null;
-      let accumulatedText = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop();
-
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed) continue;
-          try {
-            const data = JSON.parse(trimmed);
-            if (data.type === "chunk" && data.text) {
-              if (typing) {
-                typing.remove();
-              }
-              if (!botMsg) {
-                botMsg = addMessage("bot", "", { raw: true });
-              }
-              accumulatedText += data.text;
-              const bubbleEl = botMsg.querySelector(".sharpai-bubble");
-              if (bubbleEl) {
-                bubbleEl.innerHTML = renderMarkdown(accumulatedText) + `<span class="sharpai-time">${timeLabel()}</span>`;
-              }
-              scrollToBottom();
-            } else if (data.type === "meta") {
-              if (data.leadForm) {
-                promptLeadForm(message);
-              } else if (!state.leadPrompted && looksMeaningful(message) && state.leadScore >= 35 && !isLeadCooldownActive(message)) {
-                maybeOfferQuote();
-              }
-            }
-          } catch (err) {
-            console.error("Failed to parse stream line:", err, trimmed);
-          }
-        }
+      if (data.leadForm) {
+        promptLeadForm(message);
+      } else if (!state.leadPrompted && looksMeaningful(message) && state.leadScore >= 35 && !isLeadCooldownActive(message)) {
+        maybeOfferQuote();
       }
     } catch (error) {
       typing?.remove();

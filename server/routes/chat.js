@@ -80,9 +80,7 @@ router.post("/chat", async (req, res) => {
   let promptTime = 0;
   let nvidiaTime = 0;
 
-  // Set streaming headers
-  res.setHeader("Content-Type", "application/json");
-  res.setHeader("Transfer-Encoding", "chunked");
+
 
   let contexts = [];
   let history = [];
@@ -125,15 +123,13 @@ router.post("/chat", async (req, res) => {
     nvidiaTime = Date.now() - startNvidia;
     console.log("NVIDIA response:", answerAccumulator);
 
-    res.write(JSON.stringify({ type: "chunk", text: answerAccumulator }) + "\n");
-
     const leadForm = isLeadIntent(message);
-    res.write(JSON.stringify({
-      type: "meta",
+    res.json({
+      success: true,
+      response: answerAccumulator,
       leadForm,
       contexts: contexts.map(({ source, score }) => ({ source, score }))
-    }) + "\n");
-    res.end();
+    });
 
     const totalTime = Date.now() - startTotal;
 
@@ -173,19 +169,11 @@ Total:     ${totalTime}ms\n`);
     console.error(error.stack);
 
     if (!res.headersSent) {
-      res.removeHeader("Transfer-Encoding");
       res.status(500).json({
         success: false,
         error: error.message,
         stack: process.env.NODE_ENV !== "production" ? error.stack : undefined
       });
-    } else {
-      res.write(JSON.stringify({
-        type: "chunk",
-        text: `CHAT ERROR: ${error.message}`
-      }) + "\n");
-      res.write(JSON.stringify({ type: "meta", leadForm: false, contexts: [], error: error.message }) + "\n");
-      res.end();
     }
 
     appendJson("chat-history.json", {
