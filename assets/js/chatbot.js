@@ -206,7 +206,7 @@
             <span class="sharpai-sr-only">Message SharpAI</span>
             <textarea class="sharpai-input" data-sharpai-input rows="1" placeholder="Ask about your project..."></textarea>
           </label>
-          <button class="sharpai-send" type="submit" aria-label="Send message">${icons.send}</button>
+          <button class="sharpai-send" type="button" aria-label="Send message">${icons.send}</button>
         </form>
       </section>
     `;
@@ -244,6 +244,7 @@
       const message = input.value.trim();
       if (!message || state.busy) return;
       
+      console.log("Message submitted");
       input.value = "";
       input.style.height = "auto";
       sendMessage(message);
@@ -549,9 +550,11 @@
       });
 
       const data = await response.json();
+      console.log("Response received");
       typing?.remove();
 
       if (data.response) {
+        console.log("Rendering assistant response");
         addMessage("bot", data.response);
       }
 
@@ -656,4 +659,7 @@
   } else {
     createWidget();
   }
+  window.addEventListener("beforeunload", () => {
+    console.trace("PAGE IS RELOADING");
+  });
 })();
