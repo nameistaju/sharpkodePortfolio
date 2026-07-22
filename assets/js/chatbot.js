@@ -1,30 +1,17 @@
 (() => {
-  const API_BASE = resolveApiBase();
-  const API_BASE_URL = API_BASE;
+  const API_BASE_URL = window.API_BASE_URL || (
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1" ||
+    window.location.protocol === "file:"
+      ? "http://localhost:5050"
+      : "https://sharpkode-api.onrender.com"
+  );
   const WHATSAPP_URL = "https://wa.me/917799343436?text=Hi%20SharpKode%20Team%2C%20I%20found%20your%20website%20and%20would%20like%20to%20discuss%20my%20project.";
   const CONTACT_EMAIL = "info@sharpkode.com";
   const CONTACT_PHONE = "+917799343436";
 
   let isWindowLoaded = false;
   let secondaryShown = false;
-
-  function resolveApiBase() {
-    const configured =
-      window.API_BASE_URL ||
-      window.SHARPAI_CONFIG?.apiBaseUrl ||
-      window.SHARPAI_API_BASE ||
-      document.querySelector('meta[name="sharpai-api-base"]')?.content;
-    if (configured) return configured.replace(/\/$/, "");
-
-    const hostname = window.location.hostname;
-    const protocol = window.location.protocol;
-    const isLocal = !hostname || hostname === "localhost" || hostname === "127.0.0.1" || protocol === "file:";
-    if (isLocal) return "http://localhost:5050";
-
-    const parts = hostname.split(".");
-    const rootDomain = parts.length >= 2 ? parts.slice(-2).join(".") : hostname;
-    return `${protocol}//api.${rootDomain}`;
-  }
 
   const icons = {
     send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg>',
@@ -555,7 +542,7 @@
 
     try {
       logStep("Submitting streaming request...");
-      const response = await fetch(`${API_BASE}/api/chat`, {
+      const response = await fetch(`${API_BASE_URL}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message, sessionId: state.sessionId })
@@ -679,7 +666,7 @@
     const typing = addTyping();
     setBusy(true);
     try {
-      const response = await fetch(`${API_BASE}/api/leads`, {
+      const response = await fetch(`${API_BASE_URL}/api/leads`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...data, sessionId: state.sessionId })
