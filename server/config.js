@@ -33,6 +33,9 @@ function getAllowedOrigins() {
     "https://sharpkode.com",
     "https://www.sharpkode.com",
     "https://api.sharpkode.com",
+    "https://sharpkode.vercel.app",
+    "https://sharpkode-api.onrender.com",
+    "https://sharpkode.onrender.com",
     "http://localhost:3000",
     "http://localhost:5050",
     "http://127.0.0.1:5500"

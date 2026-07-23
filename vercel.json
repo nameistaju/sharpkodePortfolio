@@ -19,6 +19,15 @@
       ]
     },
     {
+      "source": "/logo-loader",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        }
+      ]
+    },
+    {
       "source": "/logo-loader.html",
       "headers": [
         {

@@ -23,7 +23,13 @@ app.use(cors({
       callback(null, true);
       return;
     }
-    callback(new Error(`Origin not allowed: ${origin}`));
+    // Check for vercel.app preview/deploy domains for this project
+    if (/^https:\/\/sharpkode[a-z0-9\-]*\.vercel\.app$/.test(origin)) {
+      callback(null, true);
+      return;
+    }
+    // Return false (403 Forbidden) instead of throwing, which would cause a 500
+    callback(null, false);
   },
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]

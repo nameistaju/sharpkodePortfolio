@@ -277,17 +277,21 @@
     // Pull down to close sheet gesture tracking on Mobile
     let touchStartY = 0;
     let touchMoveY = 0;
+    let hasMoved = false;
     const windowEl = widget.querySelector(".sharpai-window");
     const headerEl = widget.querySelector(".sharpai-header");
 
     if (headerEl && windowEl) {
       headerEl.addEventListener("touchstart", (e) => {
         touchStartY = e.touches[0].clientY;
+        touchMoveY = 0;
+        hasMoved = false;
         windowEl.style.transition = "none";
       }, { passive: true });
 
       headerEl.addEventListener("touchmove", (e) => {
         touchMoveY = e.touches[0].clientY;
+        hasMoved = true;
         const diffY = touchMoveY - touchStartY;
         if (diffY > 0) {
           windowEl.style.transform = `translateY(${diffY}px)`;
@@ -296,13 +300,16 @@
 
       headerEl.addEventListener("touchend", () => {
         windowEl.style.transition = "";
-        const diffY = touchMoveY - touchStartY;
-        if (diffY > 150 && state.open) {
-          setOpen(false);
+        if (hasMoved) {
+          const diffY = touchMoveY - touchStartY;
+          if (diffY > 150 && state.open) {
+            setOpen(false);
+          }
         }
         windowEl.style.transform = "";
         touchStartY = 0;
         touchMoveY = 0;
+        hasMoved = false;
       });
     }
   }
